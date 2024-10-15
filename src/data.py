@@ -1,7 +1,7 @@
 import pandas as pd
 
-def main():
-    path = "../data/" + "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
+def get_data(filename):
+    path = "../data/" + filename
     
     try:
         # CSV-Datei einlesen
@@ -41,4 +41,4 @@ def main():
         print("File has not been found.")
         
 if __name__ == "__main__":
-    main()
+    get_data("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")
