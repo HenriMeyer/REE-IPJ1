@@ -1,0 +1,71 @@
+[33mcommit 0e0427de89a76e02707f6c40f9354d6a7872a7ec[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mhenri[m[33m, [m[1;31morigin/henri[m[33m)[m
+Author: HenriMeyer <meyer_henri.1@web.de>
+Date:   Mon Oct 14 17:51:22 2024 +0200
+
+    can't spell 'scr'
+
+[33mcommit b4c21f6813e9b0765839f638a068d5e9611b4a64[m
+Author: HenriMeyer <meyer_henri.1@web.de>
+Date:   Mon Oct 14 17:49:31 2024 +0200
+
+    Create scr folder and add files
+
+[33mcommit d4dc2d74a5b78f7c3b203f7fd695d9b13da220d4[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Mon Oct 14 17:46:35 2024 +0200
+
+    Update README.md
+
+[33mcommit 2af7e408ac808f35ba0b45900e371827b984e116[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Mon Oct 14 17:45:17 2024 +0200
+
+    Create requirements.txt
+
+[33mcommit 08205c5091d39ec60a8d78522cce4cf571e8713e[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 22:25:26 2024 +0200
+
+    Create requirements_data.json
+
+[33mcommit 6bc2a278d0a69672751c1d9f1c072ad70b1fb6b0[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 22:13:44 2024 +0200
+
+    Update main.py
+
+[33mcommit b7c1c1aa234e68703bd3fdd176d8600ffe33a024[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 22:04:00 2024 +0200
+
+    Create graphics.py
+
+[33mcommit e6f3f35b8659e1a509fde052de15c795be516fa2[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 22:03:39 2024 +0200
+
+    Create data.py
+
+[33mcommit f1cfccb76453e4af1d58ddae424da44e729ee857[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 22:02:40 2024 +0200
+
+    Create gui.py
+
+[33mcommit e4248883d7d939daf1d5156b2bfdfc63261ab827[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 22:02:24 2024 +0200
+
+    Create main.py
+
+[33mcommit 3d2ad01a9e225dc0107a5333e4ec4a73d4cafa52[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 21:54:40 2024 +0200
+
+    Update README.md
+
+[33mcommit 24a01e154d7550bf1808312d82268614e130f9e0[m
+Author: HenriMeyer <121427559+HenriMeyer@users.noreply.github.com>
+Date:   Thu Oct 10 21:50:24 2024 +0200
+
+    Initial commit
