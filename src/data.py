@@ -1,7 +1,6 @@
 import pandas as pd
 
 
-
 # Get data and input is filename of the source, don't forget '.csv'
 def read_SMARD(filename):
     # Path -> move up a directory
@@ -87,4 +86,5 @@ def read_SMARD(filename):
         
         
 if __name__ == "__main__":
-    read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")
+    df = read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")
+    print(df)
