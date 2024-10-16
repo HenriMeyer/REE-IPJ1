@@ -66,10 +66,10 @@ def total_sum(df):
 
 def portion_renewable(df):
     # portion kann auch nur in return geschrieben werden nur zum testen
-    portion = renewable_total(df)/total_sum(df)*100
+    portion = renewable_total(df)/total_sum(df)
     # print("Anteil der Erneubaren: " + str(portion) + "%")
     # print(residual_load(df))
     return portion
     
 if __name__ == "__main__":
-    portion_renewable(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"))
+    print(portion_renewable(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")))
