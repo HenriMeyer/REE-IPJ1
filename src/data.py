@@ -36,11 +36,9 @@ def read_SMARD(filename):
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
             }
         )
-        # ---------------------------------------------------------------------------------------------
-        # BRAUCHT MAN DAS?
-        # df['Datum von'] = pd.to_datetime(df['Datum von'], format='%d.%m.%Y %H:%M')
-        # df['Datum bis'] = pd.to_datetime(df['Datum bis'], format='%d.%m.%Y %H:%M')
-        # ---------------------------------------------------------------------------------------------
+        df = what_i_thought()
+        print(df)
+
         return df
         
     # Error handling
@@ -70,6 +68,11 @@ def portion_renewable(df):
     # print("Anteil der Erneubaren: " + str(portion) + "%")
     # print(residual_load(df))
     return portion
+
+def what_i_thought(df):
+    df['renewable_sum'] = df.loc[:, 'Biomasse':'Wind Offshore'].sum(axis=1)
+    return df
+
     
 if __name__ == "__main__":
     print(portion_renewable(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")))
