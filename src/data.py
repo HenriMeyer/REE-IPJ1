@@ -47,25 +47,28 @@ def read_SMARD(filename):
 def total_sum(df):
     return df.iloc[:,2:].sum().sum()
 
-def total_renewable(df):
+def total_renewable_sum(df):
     return df.loc[:, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum().sum()
 
-def total_portion_renewable(df):
-    return total_renewable(df)/total_sum(df)
+def total_portion_renewable_sum(df):
+    return total_renewable_sum(df)/total_sum(df)
 
-def total_residual(df):
-    return (total_sum(df)-total_renewable(df))
+def total_residual_sum(df):
+    return (total_sum(df)-total_renewable_sum(df))
 
 
 # Row functions
-def row_renewable(df, index: int):
+def row_renewable_sum(df, index: int):
     return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum()
     
-def row_total(df, index: int):
+def row_total_sum(df, index: int):
     return df.iloc[index, 2:].sum()
 
-def row_residual(df, index: int):
-    return(row_total(df, index)-row_renewable(df,index))
+def row_residual_sum(df, index: int):
+    return(row_total_sum(df, index)-row_renewable_sum(df,index))
+
+def row_renewable_df(df, index: int):
+    return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']]
 
 
 # For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
