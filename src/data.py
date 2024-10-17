@@ -36,40 +36,39 @@ def read_SMARD(filename):
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
             }
         )
-        # ---------------------------------------------------------------------------------------------
-        # BRAUCHT MAN DAS?
-        # df['Datum von'] = pd.to_datetime(df['Datum von'], format='%d.%m.%Y %H:%M')
-        # df['Datum bis'] = pd.to_datetime(df['Datum bis'], format='%d.%m.%Y %H:%M')
-        # ---------------------------------------------------------------------------------------------
         return df
         
     # Error handling
     except FileNotFoundError:
         print(f"File '{filename}' has not been found at path: {path}")
-        
-        
-def residual_load(df):
-    return (total_sum(df)-renewable_total(df))
-    
-    
-def renewable_total(df):
-    renewable_columns = df.iloc[:, list(range(2,8))+ [12]]
-    renewable_sum = renewable_columns.sum().sum()
-    print(df.iloc[:, 0])
-    return renewable_sum
 
+
+# Total functions
 def total_sum(df):
-    numeric_columns = df.columns[2:]
-    column_sums = df[numeric_columns].sum().sum()
-    print(column_sums)
-    return column_sums
+    return df.iloc[:,2:].sum().sum()
 
-def portion_renewable(df):
-    # portion kann auch nur in return geschrieben werden nur zum testen
-    portion = renewable_total(df)/total_sum(df)
-    # print("Anteil der Erneubaren: " + str(portion) + "%")
-    # print(residual_load(df))
-    return portion
+def total_renewable(df):
+    return df.loc[:, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum().sum()
+
+def total_portion_renewable(df):
+    return total_renewable(df)/total_sum(df)
+
+def total_residual(df):
+    return (total_sum(df)-total_renewable(df))
+
+
+# Row functions
+def row_renewable(df, index: int):
+    return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum()
     
+def row_total(df, index: int):
+    return df.iloc[index, 2:].sum()
+
+def row_residual(df, index: int):
+    return(row_total(df, index)-row_renewable(df,index))
+
+
+# For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
 if __name__ == "__main__":
-    print(portion_renewable(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")))
+    for i in range(0,10):
+        print(total_sum(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")))
