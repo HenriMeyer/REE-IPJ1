@@ -36,11 +36,46 @@ def read_SMARD(filename):
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
             }
         )
+        df = extract_time_components(df)
         return df
         
     # Error handling
     except FileNotFoundError:
         print(f"File '{filename}' has not been found at path: {path}")
+
+# Extract time components and reorder
+def extract_time_components(df):
+    # Extract year, month, day, hour, minute from 'Datum von'
+    df['Jahr_von'] = df['Datum von'].dt.year
+    df['Monat_von'] = df['Datum von'].dt.month
+    df['Tag_von'] = df['Datum von'].dt.day
+    df['Stunde_von'] = df['Datum von'].dt.hour
+    df['Minute_von'] = df['Datum von'].dt.minute
+    
+    # Extract year, month, day, hour, minute from 'Datum bis'
+    df['Jahr_bis'] = df['Datum bis'].dt.year
+    df['Monat_bis'] = df['Datum bis'].dt.month
+    df['Tag_bis'] = df['Datum bis'].dt.day
+    df['Stunde_bis'] = df['Datum bis'].dt.hour
+    df['Minute_bis'] = df['Datum bis'].dt.minute
+    
+    # Drop the original date columns
+    df = df.drop(columns=['Datum von', 'Datum bis'])
+    
+    # Reorder the columns
+    new_order = [
+        'Jahr_von', 'Monat_von', 'Tag_von', 'Stunde_von', 'Minute_von',
+        'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Stunde_bis', 'Minute_bis',
+        'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
+        'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
+        'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher',
+        'Sonstige Konventionelle'
+    ]
+    
+    df = df[new_order]
+
+    # Return the updated DataFrame
+    return df
 
 
 # Total functions
@@ -68,10 +103,17 @@ def row_residual_sum(df, index: int):
     return(row_total_sum(df, index)-row_renewable_sum(df,index))
 
 def row_renewable_df(df, index: int):
-    return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']]
-# LEIF datum funktion extrahieren in bestandteile rausnehmen
+    return df.loc[index, ['Jahr_von', 'Monat_von', 'Tag_von', 'Stunde_von', 'Minute_von',
+                           'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Stunde_bis', 'Minute_bis',
+                           'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
+                           'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher']]
+
 
 # For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
 if __name__ == "__main__":
-    for i in range(0,10):
-        print(row_renewable_df(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"),i))
+    df = read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")
+    print(df)
+    # Display the first 10 renewable data rows
+    # for i in range(0, 10):
+    #     row_df = row_renewable_df(df, i)
+    #     print(row_df)
