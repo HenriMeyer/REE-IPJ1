@@ -60,7 +60,7 @@ def total_residual_sum(df):
 # Row functions
 def row_renewable_sum(df, index: int):
     return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum()
-    
+
 def row_total_sum(df, index: int):
     return df.iloc[index, 2:].sum()
 
@@ -69,9 +69,9 @@ def row_residual_sum(df, index: int):
 
 def row_renewable_df(df, index: int):
     return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']]
-
+# LEIF datum funktion extrahieren in bestandteile rausnehmen
 
 # For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
 if __name__ == "__main__":
     for i in range(0,10):
-        print(total_sum(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")))
+        print(row_renewable_df(read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"),i))
