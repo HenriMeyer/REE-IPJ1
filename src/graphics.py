@@ -21,3 +21,5 @@ def plotWeekdayHeatmap(df, title, colName, indexY, indexX):
     plt.ylabel(indexY)
 
     plt.show()  
+
+

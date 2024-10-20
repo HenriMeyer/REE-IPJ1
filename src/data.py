@@ -36,6 +36,7 @@ def read_SMARD(filename):
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
             }
         )
+        df = row_sums_all(df)
         df = extract_time_components(df)
         return df
         
@@ -67,9 +68,9 @@ def extract_time_components(df):
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
         'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher',
-        'Sonstige Konventionelle'
+        'Sonstige Konventionelle','renewable', 'total', 'residual'
     ]
-    
+
     df = df[new_order]
 
     # Return the updated DataFrame
@@ -105,6 +106,14 @@ def row_renewable_df(df, index: int):
                            'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Uhrzeit_bis',
                            'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
                            'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher']]
+
+
+def row_sums_all(df):
+
+    df['renewable'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis = 1)
+    df['total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis = 1)
+    df['residual'] = df['total']- df['renewable']
+    return df
 
 
 # For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
