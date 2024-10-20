@@ -59,7 +59,7 @@ def extract_time_components(df):
     df['Stunde_bis'] = df['Datum bis'].dt.hour
     df['Minute_bis'] = df['Datum bis'].dt.minute
     
-    # Drop the original date columns
+    # Remove the original date columns
     df = df.drop(columns=['Datum von', 'Datum bis'])
     
     # Reorder the columns
@@ -108,6 +108,10 @@ def row_renewable_df(df, index: int):
                            'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
                            'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher']]
 
+# row EE anteil switch case 'd' 'm' 'y' und dann als dataframe zurückgeben??? ist realisierbar oder als float64
+# 
+# 
+# 
 
 # For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
 if __name__ == "__main__":
