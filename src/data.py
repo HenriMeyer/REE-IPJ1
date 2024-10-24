@@ -36,6 +36,7 @@ def read_SMARD(filename):
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
             }
         )
+        df = row_sums_all(df)
         df = extract_time_components(df)
         return df
         
@@ -49,29 +50,27 @@ def extract_time_components(df):
     df['Jahr_von'] = df['Datum von'].dt.year
     df['Monat_von'] = df['Datum von'].dt.month
     df['Tag_von'] = df['Datum von'].dt.day
-    df['Stunde_von'] = df['Datum von'].dt.hour
-    df['Minute_von'] = df['Datum von'].dt.minute
+    df['Uhrzeit_von'] = df['Datum von'].dt.time
     
     # Extract year, month, day, hour, minute from 'Datum bis'
     df['Jahr_bis'] = df['Datum bis'].dt.year
     df['Monat_bis'] = df['Datum bis'].dt.month
     df['Tag_bis'] = df['Datum bis'].dt.day
-    df['Stunde_bis'] = df['Datum bis'].dt.hour
-    df['Minute_bis'] = df['Datum bis'].dt.minute
+    df['Uhrzeit_bis'] = df['Datum bis'].dt.time
     
     # Remove the original date columns
     df = df.drop(columns=['Datum von', 'Datum bis'])
     
     # Reorder the columns
     new_order = [
-        'Jahr_von', 'Monat_von', 'Tag_von', 'Stunde_von', 'Minute_von',
-        'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Stunde_bis', 'Minute_bis',
+        'Jahr_von', 'Monat_von', 'Tag_von', 'Uhrzeit_von',
+        'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Uhrzeit_bis',
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
         'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher',
-        'Sonstige Konventionelle'
+        'Sonstige Konventionelle','renewable', 'total', 'residual'
     ]
-    
+
     df = df[new_order]
 
     # Return the updated DataFrame
@@ -103,8 +102,8 @@ def row_residual_sum(df, index: int):
     return(row_total_sum(df, index)-row_renewable_sum(df,index))
 
 def row_renewable_df(df, index: int):
-    return df.loc[index, ['Jahr_von', 'Monat_von', 'Tag_von', 'Stunde_von', 'Minute_von',
-                           'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Stunde_bis', 'Minute_bis',
+    return df.loc[index, ['Jahr_von', 'Monat_von', 'Tag_von', 'Uhrzeit_von',
+                           'Jahr_bis', 'Monat_bis', 'Tag_bis', 'Uhrzeit_bis',
                            'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
                            'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher']]
 
@@ -112,6 +111,14 @@ def row_renewable_df(df, index: int):
 # 
 # 
 # 
+
+def row_sums_all(df):
+
+    df['renewable'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis = 1)
+    df['total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis = 1)
+    df['residual'] = df['total']- df['renewable']
+    return df
+
 
 # For testing: "Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv"
 if __name__ == "__main__":
