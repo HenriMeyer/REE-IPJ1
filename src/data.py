@@ -109,7 +109,7 @@ def countPercentageRenewable(df):
     vector = np.zeros(11, dtype=int)
     
     for i in range(1, 11):
-        vector[i] = np.sum(renewable_percentage <= 10 * i)
+        vector[i] = np.sum(renewable_percentage >= 10 * i)
     vector[0] = len(df)
     
     return vector.tolist()
