@@ -68,7 +68,7 @@ def extract_time_components(df):
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
         'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher',
-        'Sonstige Konventionelle','renewable', 'total', 'residual'
+        'Sonstige Konventionelle','Erneuerbar', 'Total', 'Residual'
     ]
 
     df = df[new_order]
@@ -114,9 +114,9 @@ def row_renewable_df(df, index: int):
 
 def row_sums_all(df):
 
-    df['renewable'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis = 1)
-    df['total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis = 1)
-    df['residual'] = df['total']- df['renewable']
+    df['Erneuerbar'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis = 1)
+    df['Total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis = 1)
+    df['Residual'] = df['Total']- df['Erneuerbar']
     return df
 
 
