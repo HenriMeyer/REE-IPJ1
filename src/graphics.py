@@ -9,7 +9,7 @@ import numpy as np
 # indexY: Time on Y-axis
 # indexX: Time on X-axis
 
-def plotWeekdayHeatmap(df, title, colName, indexY, indexX):
+def plotHeatmap(df, title, colName, indexY, indexX):
 
     heatmap_data = df.pivot_table(index = indexY, columns = indexX , values=colName, aggfunc=np.mean) # Leistungsmittelwerte!
 
@@ -22,4 +22,18 @@ def plotWeekdayHeatmap(df, title, colName, indexY, indexX):
 
     plt.show()  
 
+def plotHistogram(vec):
 
+    x_labels = [f"{(i+1)*10}%" for i in range(10)]
+
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(x_labels, vec[1:], color='skyblue')
+    plt.xlabel('Anteil Erneuerbar [%]')
+    plt.ylabel('Anzahl an Viertelstunden')
+    plt.title('Histogramm der erneuerbaren Anteile')
+
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, yval + 2, yval, ha='center', va='bottom')
+
+    plt.show()
