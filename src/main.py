@@ -6,7 +6,7 @@ def main():
     #df = data.read_SMARD("Realisierte_Erzeugung_202410050000_202410160000_Viertelstunde.csv")
     df = data.read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
     print(df)
-    #heatmaps(df)
+    heatmaps(df)
     histograms(df)
 
 

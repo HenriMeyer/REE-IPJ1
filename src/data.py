@@ -37,7 +37,7 @@ def read_SMARD(filename):
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
             }
         )
-        
+
         # Add further information to dataframe
         df = formatTime(df)
         df = addDataInformation(df)
@@ -73,6 +73,12 @@ def formatTime(df):
     # Return the updated DataFrame
     return df
 
+#-------------------------------------------------------------------------------------
+# Monat und Tag in df
+# Andere Datei einlesen
+# 
+# 
+#-------------------------------------------------------------------------------------
 
 # Total functions
 def total_sum(df):
