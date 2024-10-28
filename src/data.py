@@ -95,35 +95,7 @@ def addPercantageRenewable(df):
     return df
 
 
-# Total functions
-def total_sum(df):
-    return df.iloc[:,2:].sum().sum()
-
-def total_renewable_sum(df):
-    return df.loc[:, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum().sum()
-
-def total_portion_renewable_sum(df):
-    return total_renewable_sum(df)/total_sum(df)
-
-def total_residual_sum(df):
-    return (total_sum(df)-total_renewable_sum(df))
-
-
-# Row functions
-def row_renewable_sum(df, index: int):
-    return df.loc[index, ['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum()
-
-def row_total_sum(df, index: int):
-    return df.iloc[index, 2:].sum()
-
-def row_residual_sum(df, index: int):
-    return(row_total_sum(df, index)-row_renewable_sum(df,index))
-
-def row_renewable_df(df, index: int):
-    return df.loc[index, ['Jahr', 'Monat', 'Tag', 'Uhrzeit',
-                           'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
-                           'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher']]
-
+# Generation
 # Renewable portion for each row
 def countPercentageRenewable(df):
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
@@ -146,7 +118,16 @@ def countPercentageRenewableExclude(df):
     return vector.tolist()
 
 
+# Consumption
+def sumTotal(df, generation:bool = True):
+    if(generation):
+        return df['Total'].sum(axis=0)
+    else:
+        return df['Gesamt'].sum(axis=0)
+
+
 if __name__ == "__main__":
-    # df = read_SMARD("Realisierte_Erzeugung_202101010000_202201010000_Viertelstunde.csv")
-    df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
+    df = read_SMARD("Realisierte_Erzeugung_202101010000_202201010000_Viertelstunde.csv")
+    # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
     print(df)
+    print(sumTotal(df))
