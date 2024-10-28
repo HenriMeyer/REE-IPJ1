@@ -71,6 +71,7 @@ def read_SMARD(filename, generation:bool = True):
         print(f"File '{filename}' has not been found at path: {path}")
 
 
+# General
 # Add further information
 def formatTime(df):
     # Extract year, month, day, hour, minute from 'Datum von'
@@ -84,6 +85,9 @@ def formatTime(df):
     df = df.drop(columns=['Datum von', 'Datum bis'])
     return df
 
+
+# Generation
+# Add further information
 def addDataInformation(df):
     df['Erneuerbar'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)
     df['Total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)
@@ -94,8 +98,6 @@ def addPercantageRenewable(df):
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)/df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)*100).round(2)
     return df
 
-
-# Generation
 # Renewable portion for each row
 def countPercentageRenewable(df):
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
@@ -114,11 +116,12 @@ def countPercentageRenewableExclude(df):
     
     for i in range(0, 11):
         vector[i] = np.sum((renewable_percentage >= 10 * i) & (renewable_percentage < 10 * (i+1)))
-    
+        
     return vector.tolist()
 
 
 # Consumption
+# Total sum column
 def sumTotal(df, generation:bool = True):
     if(generation):
         return df['Total'].sum(axis=0)
