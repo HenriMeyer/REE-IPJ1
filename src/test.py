@@ -1,84 +1,95 @@
 import unittest
 import pandas as pd
-from io import StringIO
-from data import row_renewable_sum, row_total_sum, row_residual_sum, total_renewable_sum, total_sum, total_portion_renewable_sum
+import numpy as np
+from datetime import datetime
+from data import read_SMARD, formatTime, addDataInformation, addPercantageRenewable, countPercentageRenewable, countPercentageRenewableExclude, sumTotal
 
-
-# Füge hier dein Skript ein, z.B. die read_SMARD-Funktion und andere Funktionen
-# (Für den Test verwenden wir einen DataFrame direkt)
-
-# Simulierter CSV-Text, den wir für Tests verwenden
-mock_csv = """Datum von;Datum bis;Biomasse [MWh] Originalauflösungen;Wasserkraft [MWh] Originalauflösungen;Wind Offshore [MWh] Originalauflösungen;Wind Onshore [MWh] Originalauflösungen;Photovoltaik [MWh] Originalauflösungen;Sonstige Erneuerbare [MWh] Originalauflösungen;Pumpspeicher [MWh] Originalauflösungen;Sonstige Konventionelle [MWh] Originalauflösungen
-05.10.2024 00:00;05.10.2024 00:15;100;150;200;300;50;10;5;20
-05.10.2024 00:15;05.10.2024 00:30;110;160;210;310;55;11;6;21
-"""
-
-# Testklasse
-class TestSMARD(unittest.TestCase):
+class TestSMARDFunctions(unittest.TestCase):
 
     def setUp(self):
-        # Wir simulieren das Einlesen der Datei mit einem StringIO
-        self.df = pd.read_csv(
-            StringIO(mock_csv),
-            sep=';',
-            decimal=',',
-            parse_dates=[0, 1],
-            dayfirst=True
-        )
+        """Set up a sample DataFrame for testing."""
+        data = {
+            'Datum von': pd.to_datetime(['2021-01-01 00:00', '2021-01-01 00:15']),
+            'Datum bis': pd.to_datetime(['2021-01-01 00:15', '2021-01-01 00:30']),
+            'Biomasse': [50, 55],
+            'Wasserkraft': [30, 35],
+            'Wind Offshore': [100, 105],
+            'Wind Onshore': [80, 85],
+            'Photovoltaik': [40, 45],
+            'Sonstige Erneuerbare': [20, 25],
+            'Kernenergie': [200, 210],
+            'Braunkohle': [150, 160],
+            'Steinkohle': [100, 110],
+            'Erdgas': [80, 85],
+            'Pumpspeicher': [60, 65],
+            'Sonstige Konventionelle': [30, 35]
+        }
+        self.df = pd.DataFrame(data)
+
+    def test_formatTime(self):
+        """Test if time formatting works correctly."""
+        df_formatted = formatTime(self.df.copy())
+        self.assertIn('Jahr', df_formatted.columns)
+        self.assertIn('Monat', df_formatted.columns)
+        self.assertIn('Tag', df_formatted.columns)
+        self.assertIn('Uhrzeit', df_formatted.columns)
+        self.assertIn('Monat Tag', df_formatted.columns)
+        self.assertNotIn('Datum von', df_formatted.columns)
+        self.assertNotIn('Datum bis', df_formatted.columns)
+
+    def test_addDataInformation(self):
+        """Test if renewable, total, and residual columns are calculated correctly."""
+        df_with_info = addDataInformation(self.df.copy())
+        expected_renewable = [380, 415]  # Sum of all renewables
+        expected_total = [940, 1015]  # Sum of all columns except Datum columns
+        expected_residual = [560, 600]  # Total - Renewable
+
+        self.assertListEqual(df_with_info['Erneuerbar'].tolist(), expected_renewable)
+        self.assertListEqual(df_with_info['Total'].tolist(), expected_total)
+        self.assertListEqual(df_with_info['Residual'].tolist(), expected_residual)
+
+    def test_addPercantageRenewable(self):
+        """Test if renewable percentage is calculated correctly."""
+        df_with_info = addDataInformation(self.df.copy())
+        df_with_percentage = addPercantageRenewable(df_with_info)
         
-        # Spalten umbenennen, wie in der read_SMARD-Funktion
-        self.df = self.df.rename(
-            columns={
-                'Biomasse [MWh] Originalauflösungen': 'Biomasse',
-                'Wasserkraft [MWh] Originalauflösungen': 'Wasserkraft',
-                'Wind Offshore [MWh] Originalauflösungen': 'Wind Offshore',
-                'Wind Onshore [MWh] Originalauflösungen': 'Wind Onshore',
-                'Photovoltaik [MWh] Originalauflösungen': 'Photovoltaik',
-                'Sonstige Erneuerbare [MWh] Originalauflösungen': 'Sonstige Erneuerbare',
-                'Pumpspeicher [MWh] Originalauflösungen': 'Pumpspeicher',
-                'Sonstige Konventionelle [MWh] Originalauflösungen': 'Sonstige Konventionelle'
-            }
-        )
+        expected_percentage = [(380 / 940) * 100, (415 / 1015) * 100]
+        self.assertAlmostEqual(df_with_percentage['Anteil Erneuerbar [%]'].iloc[0], round(expected_percentage[0], 2))
+        self.assertAlmostEqual(df_with_percentage['Anteil Erneuerbar [%]'].iloc[1], round(expected_percentage[1], 2))
 
-    # Test für die row_renewable_sum-Funktion
-    def test_row_renewable_sum(self):
-        result = row_renewable_sum(self.df, 0)
-        expected = 100 + 150 + 200 + 300 + 50 + 10 + 5  # Summe der erneuerbaren Energien in Zeile 0
-        self.assertEqual(result, expected)
+        def test_countPercentageRenewable(self):
+            """Test if renewable percentage counts are calculated correctly."""
+            df_with_info = addDataInformation(self.df.copy())
+            df_with_percentage = addPercantageRenewable(df_with_info)
+            percentage_count = countPercentageRenewable(df_with_percentage)
+            
+            # Hier die erwartete Erneuerbare Energien Anteil festlegen
+            # (ca. 40% in den Beispieldaten)
+            self.assertGreaterEqual(percentage_count[4], 2)  # Beide Zeilen haben ca. 40 %
+            self.assertEqual(percentage_count[10], 0)  # Keine Zeile über 90%
 
-    # Test für die row_total_sum-Funktion
-    def test_row_total_sum(self):
-        result = row_total_sum(self.df, 0)
-        expected = 100 + 150 + 200 + 300 + 50 + 10 + 5 + 20  # Gesamtsumme in Zeile 0
-        self.assertEqual(result, expected)
+    def test_countPercentageRenewableExclude(self):
+        """Test if renewable percentage counts are calculated correctly excluding already counted ranges."""
+        df_with_info = addDataInformation(self.df.copy())
+        df_with_percentage = addPercantageRenewable(df_with_info)
+        percentage_count = countPercentageRenewableExclude(df_with_percentage)
+        
+        # For the given test data, both rows have a renewable percentage around 40%
+        self.assertEqual(percentage_count[4], 2)  # Both rows between 40-50%
+        self.assertEqual(percentage_count[10], 0)  # No rows in the 90-100% range
 
-    # Test für die row_residual_sum-Funktion
-    def test_row_residual_sum(self):
-        result = row_residual_sum(self.df, 0)
-        renewable_sum = 100 + 150 + 200 + 300 + 50 + 10 + 5  # Summe der erneuerbaren Energien
-        total_sum = 100 + 150 + 200 + 300 + 50 + 10 + 5 + 20  # Gesamtsumme
-        expected = total_sum - renewable_sum  # Residuallast = Gesamtsumme - Erneuerbare
-        self.assertEqual(result, expected)
+    def test_sumTotal_generation(self):
+        """Test if total sum calculation works for generation data."""
+        df_with_info = addDataInformation(self.df.copy())
+        total_sum = sumTotal(df_with_info)
+        self.assertEqual(total_sum, df_with_info['Total'].sum())
 
-    # Test für die total_renewable_sum-Funktion
-    def test_total_renewable_sum(self):
-        result = total_renewable_sum(self.df)
-        expected = (100 + 150 + 200 + 300 + 50 + 10 + 5) + (110 + 160 + 210 + 310 + 55 + 11 + 6)  # Summe aller erneuerbaren Energien
-        self.assertEqual(result, expected)
+    def test_sumTotal_consumption(self):
+        """Test if total sum calculation works for consumption data."""
+        # Add a sample consumption column for testing
+        self.df['Gesamt'] = [500, 600]
+        total_sum = sumTotal(self.df, generation=False)
+        self.assertEqual(total_sum, sum([500, 600]))
 
-    # Test für die total_sum-Funktion
-    def test_total_sum(self):
-        result = total_sum(self.df)
-        expected = (100 + 150 + 200 + 300 + 50 + 10 + 5 + 20) + (110 + 160 + 210 + 310 + 55 + 11 + 6 + 21)  # Gesamtsumme aller Zeilen
-        self.assertEqual(result, expected)
-
-    # Test für die total_portion_renewable_sum-Funktion
-    def test_total_portion_renewable_sum(self):
-        renewable_sum = total_renewable_sum(self.df)
-        total = total_sum(self.df)
-        expected = renewable_sum / total  # Anteil erneuerbare an der Gesamtsumme
-        result = total_portion_renewable_sum(self.df)
-        self.assertAlmostEqual(result, expected, places=5)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
