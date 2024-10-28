@@ -22,7 +22,7 @@ def plotHeatmap(df, title, colName, indexY, indexX):
 
     plt.show()  
 
-def plotHistogram(vec):
+def plotHistogramPercent(vec):
 
     x_labels = [f"{(i+1)*10}%" for i in range(10)]
 
@@ -35,5 +35,20 @@ def plotHistogram(vec):
     for bar in bars:
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width() / 2, yval + 2, yval, ha='center', va='bottom')
+
+    plt.show()
+
+def plotPiePercent(vec):
+
+    labels = [f"{i}/{10} EEs" if vec[i] > 0 else "" for i in range(len(vec))]
+
+    def func(pct):
+        if pct > 0:
+            return f'{pct:.0f}%'
+        return ''
+    
+    plt.figure(figsize=(8, 8))
+    plt.pie(vec, labels = labels, autopct=lambda pct: func(pct), startangle=90, colors=plt.cm.Paired.colors, wedgeprops={'width': 0.3}, pctdistance=0.85)
+    plt.title('Anzahl von Viertelstunden mit [%] Anteil von Erneuerbaren')
 
     plt.show()
