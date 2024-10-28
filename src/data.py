@@ -114,6 +114,16 @@ def countPercentageRenewable(df):
     
     return vector.tolist()
 
+# Renewable portion for each row excluding already counted
+def countPercentageRenewableExclude(df):
+    renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
+    vector = np.zeros(11, dtype=int)
+    
+    for i in range(0, 11):
+        vector[i] = np.sum((renewable_percentage >= 10 * i) & (renewable_percentage < 10 * (i+1)))
+    
+    return vector.tolist()
+
 # Add further information to dataframe
 def addPercantageRenewable(df):
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)/df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)*100).round(2)
