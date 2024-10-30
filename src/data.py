@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import csv
+import os
 
 
 # Get data and input is filename of the source, don't forget '.csv'
@@ -51,7 +53,7 @@ def read_SMARD(filename, generation:bool = True):
                 'Jahr', 'Monat', 'Tag', 'Uhrzeit', 'Monat Tag',
                 'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
                 'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
-                'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher',
+                'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas',
                 'Sonstige Konventionelle','Erneuerbar','Anteil Erneuerbar [%]', 'Total', 'Residual'
             ]
             df = df[new_order]
@@ -126,10 +128,48 @@ def countPercentageRenewableExclude(df):
 
 # Consumption
 
+# Save data in csv
+def appendCSV(df1, df2, df3, df4, df5, df6):
+    filePath = '../data/Datensatz.csv'
+    generation = [df1, df2, df3]
+    consumption = [df4, df5, df6]
+    with open(filePath, 'a') as file:
+        file.write("Stromerzeugung von 2021-2023\n")
+    write_header = True
+    for df in generation:
+        numberRows = df.shape[0]
+        df = df[['Jahr', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 
+                 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
+                 'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
+                 'Pumpspeicher', 'Sonstige Konventionelle', 'Erneuerbar', 
+                 'Anteil Erneuerbar [%]', 'Total', 'Residual']]
+        
+        df = df.groupby('Jahr').sum().reset_index()
+        for column in df.columns:
+            if column not in ['Jahr', 'Anteil Erneuerbar [%]']:
+                df[column] = round(df[column] / 1e+6,3)
+        df['Anteil Erneuerbar [%]'] = round(df['Anteil Erneuerbar [%]'] / numberRows,2)
+        
+        df.to_csv(filePath, mode='a', header=write_header, index=False, sep=';', decimal=',')
+        write_header = False
+    write_header = True
+    with open(filePath, 'a') as file:
+        file.write("Stromverbrauch von 2021-2023\n")
+    for df in consumption:
+        df = df[['Jahr', 'Gesamt', 'Residuallast', 'Pumpspeicher']]
+        df = df.groupby('Jahr').sum().reset_index()
+        for column in df.columns:
+            if column not in ['Jahr']:
+                df[column] = round(df[column] / 1e+6,3)
+        df.to_csv(filePath, mode='a', header=write_header, index=False, sep=';', decimal=',')
+        write_header = False
+    with open(filePath, 'a') as file:
+        file.write("Alle Werte sind in TWh angegeben\n")
+        file.write("https://www.smard.de/home/downloadcenter/download-marktdaten/\n")
 
 
 if __name__ == "__main__":
-    df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
-    # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
+    # df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
+    df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
     print(df)
-    print(sumColumn(df,"Photovoltaik"))
+    # print(sumColumn(df,"Photovoltaik"))

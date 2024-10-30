@@ -11,10 +11,11 @@ def main():
     con22 = data.read_SMARD("Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv", False)
     con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
     
-    print(gen21)
+    
+    #print(gen21)
     #heatmaps(df)
-    histogramPercent(gen21)
-
+    #histogramPercent(gen21)
+    data.appendCSV(gen21, gen22, gen23, con21, con22, con23)
 
 def heatmaps(df):
     graphics.plotHeatmap(df, "Heatmap", "Residual", "Tag", "Uhrzeit")
