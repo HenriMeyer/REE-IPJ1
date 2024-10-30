@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import csv
-import os
 
 
 # Get data and input is filename of the source, don't forget '.csv'
