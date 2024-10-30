@@ -85,6 +85,10 @@ def formatTime(df):
     df = df.drop(columns=['Datum von', 'Datum bis'])
     return df
 
+# Sum of one column
+def sumColumn(df, columnName: str):
+    return df.loc[:,columnName].sum(axis=0)
+
 
 # Generation
 # Add further information
@@ -121,16 +125,11 @@ def countPercentageRenewableExclude(df):
 
 
 # Consumption
-# Total sum column
-def sumTotal(df, generation:bool = True):
-    if(generation):
-        return df['Total'].sum(axis=0)
-    else:
-        return df['Gesamt'].sum(axis=0)
+
 
 
 if __name__ == "__main__":
-    df = read_SMARD("Realisierte_Erzeugung_202101010000_202201010000_Viertelstunde.csv")
+    df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
     # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
     print(df)
-    print(sumTotal(df))
+    print(sumColumn(df,"Photovoltaik"))
