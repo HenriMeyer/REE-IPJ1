@@ -93,13 +93,13 @@ def plotPieChart(df, filename: str):
     erneuerbare_summe = df[erneuerbare_spalten].sum().sum()/(1e+6)
     konventionelle_summe = df[konventionelle_spalten].sum().sum()/(1e+6)
 
-    labels = [f'Erneuerbare Energie {erneuerbare_summe:.2f} TWh', f'Konventionelle Energie {konventionelle_summe:.2f} TWh']
+    labels = [f'Erneuerbare Energie ({erneuerbare_summe:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
     values = [erneuerbare_summe, konventionelle_summe]
 
     plt.figure(figsize=(10, 6))
-    plt.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
+    plt.pie(values, labels=labels, autopct='%1.2f%%', startangle=90)
     plt.title(filename)
-    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(path, format='png', dpi=300)
 
     plt.show()
 
@@ -124,7 +124,7 @@ def plotPieErzeugerNeu(df, filename: str):
         colors=plt.cm.Paired.colors
     )
     plt.title(filename)
-    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(path, format='png', dpi=300)
     plt.show()
 
 def plotPieErzeugerKonv(df, filename: str):
@@ -145,5 +145,5 @@ def plotPieErzeugerKonv(df, filename: str):
         colors=plt.cm.Paired.colors
     )
     plt.title(filename)
-    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(path, format='png', dpi=300)
     plt.show()

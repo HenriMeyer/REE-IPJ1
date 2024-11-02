@@ -26,10 +26,10 @@ def main():
 def heatmaps(df):
     graphics.plotHeatmap(df, "Heatmap", "Residual", "Tag", "Uhrzeit")
 
-def histogramPercent(df):
+def histogramPercent(df, time: str):
     df = data.addPercentageRenewableLast(df)
     vec = data.countPercentageRenewable(df)
-    graphics.plotHistogramPercent(vec, "2023")
+    graphics.plotHistogramPercent(vec, time)
     #vec = data.countPercentageRenewableExclude(df)
     #graphics.plotPiePercent(vec, "Pie_chart2021")
 
