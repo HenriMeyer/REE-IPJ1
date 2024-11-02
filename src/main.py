@@ -14,10 +14,13 @@ def main():
     
     #print(gen21)
     #heatmaps(df)
-    histogramPercent(con21)
-    histogramPercent(con22)
-    histogramPercent(con23)
-    data.appendCSV(gen21, gen22, gen23, con21, con22, con23)
+    histogramErzeuger(gen21, '2021')
+    histogramErzeuger(gen22, '2022')
+    histogramErzeuger(gen23, '2023')
+    #histogramPercent(con21)
+    #histogramPercent(con22)
+    #histogramPercent(con23)
+    #data.appendCSV(gen21, gen22, gen23, con21, con22, con23)
 
 
 def heatmaps(df):
@@ -25,16 +28,15 @@ def heatmaps(df):
 
 def histogramPercent(df):
     df = data.addPercentageRenewableLast(df)
-    print(df)
-    vec = data.countPercentageRenewableExclude(df)
-    #vec = data.countPercentageRenewable(df)
-    print(vec)
-    graphics.plotHistogramPercent(vec)
     vec = data.countPercentageRenewable(df)
-    graphics.plotHistogramPercent(vec, "Histogram2021")
-    vec = data.countPercentageRenewableExclude(df)
-    print(vec)
-    graphics.plotPiePercent(vec, "Pie_chart2021")
+    graphics.plotHistogramPercent(vec, "2023")
+    #vec = data.countPercentageRenewableExclude(df)
+    #graphics.plotPiePercent(vec, "Pie_chart2021")
+
+def histogramErzeuger(df, time: str):
+    graphics.plotHistogramErzeuger(df, 'Anteil der einzelnen Erzeuger an den erneuerbaren Energien '+ time)
+    graphics.plot_pie_chart(df, 'Erneuerbare vs. Konventionelle Energie '+ time)
+
 
 if __name__ == "__main__":
     main()
