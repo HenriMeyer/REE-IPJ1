@@ -19,6 +19,7 @@ def main():
     histogramPercent(con23)
     data.appendCSV(gen21, gen22, gen23, con21, con22, con23)
 
+
 def heatmaps(df):
     graphics.plotHeatmap(df, "Heatmap", "Residual", "Tag", "Uhrzeit")
 
@@ -30,8 +31,10 @@ def histogramPercent(df):
     print(vec)
     graphics.plotHistogramPercent(vec)
     vec = data.countPercentageRenewable(df)
-    graphics.plotHistogramPercent(vec)
-    #graphics.plotPiePercent(vec)
+    graphics.plotHistogramPercent(vec, "Histogram2021")
+    vec = data.countPercentageRenewableExclude(df)
+    print(vec)
+    graphics.plotPiePercent(vec, "Pie_chart2021")
 
 if __name__ == "__main__":
     main()

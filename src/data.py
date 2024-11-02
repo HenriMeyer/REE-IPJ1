@@ -1,5 +1,9 @@
 import pandas as pd
 import numpy as np
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 
 # Get data and input is filename of the source, don't forget '.csv'
@@ -130,12 +134,13 @@ def countPercentageRenewableExclude(df):
 
 # Consumption
 
-# Save data in csv
+
+# Save 'IstAnalyse' data in csv
 def appendCSV(df1, df2, df3, df4, df5, df6):
-    filePath = '../data/Datensatz.csv'
+    filePath = '../Output/Datensatz.csv'
     generation = [df1, df2, df3]
     consumption = [df4, df5, df6]
-    with open(filePath, 'a') as file:
+    with open(filePath, 'w') as file:
         file.write("Stromerzeugung von 2021-2023\n")
     write_header = True
     for df in generation:
@@ -169,9 +174,73 @@ def appendCSV(df1, df2, df3, df4, df5, df6):
         file.write("Alle Werte sind in TWh angegeben\n")
         file.write("https://www.smard.de/home/downloadcenter/download-marktdaten/\n")
 
+# Save 'IstAnalyse' in PDF
+def pdfAnalysis():
+    
+    # Dokument und Format festlegen
+    pdf_path = "../Output/IstAnalyse.pdf"
+    document = SimpleDocTemplate(pdf_path, pagesize=A4)
+
+    # Inhaltsliste für das Dokument
+    elements = []
+
+    # Style
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="Header", fontSize=18, leading=22, alignment=1, spaceAfter=12, textColor=colors.darkblue))
+    
+    text = "Dies ist ein Beispiel für ein PDF-Dokument mit Text, einem Bild und einer Tabelle."
+    paragraph = Paragraph(text, styles["Normal"])
+    elements.append(paragraph)
+    
+    # Header
+    elements.append(Paragraph("IstAnalyse der Jahre 2021-2023", styles["Header"]))
+
+    # Text
+    
+    # Zeilenumbruch hinzufügen
+    elements.append(Paragraph("<br/><br/>", styles["Normal"]))
+
+    # Add image
+    image_path = "../data/Histogram2021.png"
+    try:
+        image = Image(image_path, width=200, height=100)
+        elements.append(image)
+    except FileNotFoundError:
+        print("Das Bild konnte nicht gefunden werden. Bitte überprüfe den Pfad.")
+
+
+    # Tabel
+    data = [
+        ["Name", "Alter", "Beruf"],
+        ["Anna", "28", "Ingenieurin"],
+        ["Max", "35", "Lehrer"],
+        ["Lena", "22", "Studentin"]
+    ]
+
+    # Tabelle formatieren
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    # Tabelle zum Inhalt hinzufügen
+    elements.append(table)
+
+    # PDF erstellen
+    document.build(elements)
+
+    print("PDF wurde erfolgreich erstellt und gespeichert unter:", pdf_path)
+
 
 if __name__ == "__main__":
     # df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
     df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
     print(df)
+    pdfAnalysis()
     # print(sumColumn(df,"Photovoltaik"))
