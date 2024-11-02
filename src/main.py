@@ -35,7 +35,9 @@ def histogramPercent(df):
 
 def histogramErzeuger(df, time: str):
     graphics.plotHistogramErzeuger(df, 'Anteil der einzelnen Erzeuger an den erneuerbaren Energien '+ time)
-    graphics.plot_pie_chart(df, 'Erneuerbare vs. Konventionelle Energie '+ time)
+    graphics.plotPieChart(df, 'Erneuerbare vs. Konventionelle Energie '+ time)
+    graphics.plotPieErzeugerNeu(df, 'Anteilige Erzeugung Erneuerbarer '+ time)
+    graphics.plotPieErzeugerKonv(df, 'Anteilige Erzeugung Konventioneller '+ time)
 
 
 if __name__ == "__main__":

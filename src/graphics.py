@@ -47,7 +47,7 @@ def plotHistogramErzeuger(df, filename: str):
     path = "../data/" + filename + ".png"
     erzeuger_spalten = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
-        'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher'
+        'Photovoltaik', 'Sonstige Erneuerbare'
     ]
     
 
@@ -77,28 +77,73 @@ def plotPiePercent(vec, filename: str):
             return f'{pct:.0f}%'
         return ''
     
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(10, 6))
     plt.pie(vec, labels = labels, autopct=lambda pct: func(pct), startangle=90, colors=plt.cm.Paired.colors, wedgeprops={'width': 0.3}, pctdistance=0.85)
     plt.title('Anzahl von Viertelstunden mit [%] Anteil von Erneuerbaren')
     plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
     
     plt.show()
 
-def plot_pie_chart(df, filename: str):
+def plotPieChart(df, filename: str):
     path = "../data/" + filename + ".png"
 
     erneuerbare_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
-    konventionelle_spalten = ['Pumpspeicher', 'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
+    konventionelle_spalten = ['Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     
     erneuerbare_summe = df[erneuerbare_spalten].sum().sum()/(1e+6)
     konventionelle_summe = df[konventionelle_spalten].sum().sum()/(1e+6)
 
-    labels = [f'Erneuerbare Energie {erneuerbare_summe:.2f} GWh', f'Konventionelle Energie {konventionelle_summe:.2f} GWh']
+    labels = [f'Erneuerbare Energie {erneuerbare_summe:.2f} TWh', f'Konventionelle Energie {konventionelle_summe:.2f} TWh']
     values = [erneuerbare_summe, konventionelle_summe]
 
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(10, 6))
     plt.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
     plt.title(filename)
     plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
 
+    plt.show()
+
+def plotPieErzeugerNeu(df, filename: str):
+
+    path = "../data/" + filename + ".png"
+    erzeuger_spalten = [
+        'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
+        'Photovoltaik', 'Sonstige Erneuerbare'
+    ]
+
+    summen = df[erzeuger_spalten].sum() / 1e+6
+
+    labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(erzeuger_spalten, summen)]
+
+    plt.figure(figsize=(10, 6))
+    plt.pie(
+        summen,
+        labels=labels,
+        autopct='%1.2f%%',
+        startangle=140,
+        colors=plt.cm.Paired.colors
+    )
+    plt.title(filename)
+    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+def plotPieErzeugerKonv(df, filename: str):
+
+    path = "../data/" + filename + ".png"
+    konventionelle_spalten = ['Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
+
+    summen = df[konventionelle_spalten].sum() / 1e+6
+
+    labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(konventionelle_spalten, summen)]
+
+    plt.figure(figsize=(10, 6))
+    plt.pie(
+        summen,
+        labels=labels,
+        autopct='%1.2f%%',
+        startangle=140,
+        colors=plt.cm.Paired.colors
+    )
+    plt.title(filename)
+    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
     plt.show()
