@@ -102,6 +102,10 @@ def addPercantageRenewable(df):
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)/df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)*100).round(2)
     return df
 
+def addPercentageRenewableLast(df):
+    df['Anteil Erneuerbar [%]'] = (100-df['Residuallast']/df['Gesamt']*100).round(2)
+    return df
+
 # Renewable portion for each row
 def countPercentageRenewable(df):
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
