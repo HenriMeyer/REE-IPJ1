@@ -14,23 +14,29 @@ def main():
     
     #print(gen21)
     #heatmaps(df)
-    histogramErzeuger(gen21, '2021')
-    histogramErzeuger(gen22, '2022')
-    histogramErzeuger(gen23, '2023')
-    #histogramPercent(con21)
-    #histogramPercent(con22)
-    #histogramPercent(con23)
+    #histogramErzeuger(gen21, '2021')
+    #histogramErzeuger(gen22, '2022')
+    #histogramErzeuger(gen23, '2023')
+    histogramPercent(con21, gen21, '2021')
+    histogramPercent(con22, gen22, '2022')
+    histogramPercent(con23, gen23, '2023')
+    graphics.plotBalken(gen21, 'Alle Energieträger 2021')
+    graphics.plotBalken(gen22, 'Alle Energieträger 2022')
+    graphics.plotBalken(gen23, 'Alle Energieträger 2023')
     #data.appendCSV(gen21, gen22, gen23, con21, con22, con23)
 
 
 def heatmaps(df):
     graphics.plotHeatmap(df, "Heatmap", "Residual", "Tag", "Uhrzeit")
 
-def histogramPercent(df, time: str):
-    df = data.addPercentageRenewableLast(df)
+def histogramPercent(df, df2, time: str):
+    df = data.addPercentageRenewableLast(df, df2)
     vec = data.countPercentageRenewable(df)
-    graphics.plotHistogramPercent(vec, time)
     #vec = data.countPercentageRenewableExclude(df)
+    graphics.plotHistogramPercent2(df, 'Histogramm Abdeckung der Viertelstunden ' +time)
+    graphics.plotHistogramPercent(vec, 'Anzahl der Viertelstunden mit prozentualer Abdeckung für ' +time)
+    #graphics.plotHeatmap(df, 'Anteil Erneuerbar [%]', 'Monat', 'Tag', 'Heatmap % ' + time)
+    graphics.plotPieChartVer(df, df2, 'Erneuerbare vs. Konventionelle Energie Verbrauch '+time)
     #graphics.plotPiePercent(vec, "Pie_chart2021")
 
 def histogramErzeuger(df, time: str):

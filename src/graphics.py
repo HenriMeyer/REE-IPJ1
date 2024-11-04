@@ -9,7 +9,7 @@ import numpy as np
 # indexY: Time on Y-axis
 # indexX: Time on X-axis
 
-def plotHeatmap(df, title, colName, indexY, indexX, filename: str):
+def plotHeatmap(df, colName, indexY, indexX, filename: str):
     
     path = "../data/" + filename + ".png"
     heatmap_data = df.pivot_table(index = indexY, columns = indexX , values=colName, aggfunc=np.mean) # Leistungsmittelwerte!
@@ -17,7 +17,7 @@ def plotHeatmap(df, title, colName, indexY, indexX, filename: str):
     plt.figure(figsize=(20, 8))
     sns.heatmap(heatmap_data, cmap='coolwarm', annot=False, linewidths=.8, cbar=True, xticklabels=1)
 
-    plt.title(title)
+    plt.title(filename)
     plt.xlabel(indexX)
     plt.ylabel(indexY)
     plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
@@ -33,13 +33,28 @@ def plotHistogramPercent(vec, filename: str):
     bars = plt.bar(x_labels, vec[1:], color='skyblue')
     plt.xlabel('Anteil Erneuerbar [%]')
     plt.ylabel('Anzahl an Viertelstunden')
-    plt.title('Histogramm der erneuerbaren Anteile ' + filename)
+    plt.title( filename)
 
     for bar in bars:
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width() / 2, yval + 2, yval, ha='center', va='bottom')
     plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
     
+    plt.show()
+
+def plotHistogramPercent2(df, filename: str):
+    path = "../data/" + filename + ".png"
+
+
+    # Histogram erstellen und die x-Achse als Prozentwerte anzeigen
+    plt.figure(figsize=(10, 6))
+    plt.hist(df['Anteil Erneuerbar [%]'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115], color='skyblue', edgecolor='black')
+    plt.xlabel('Anteil Erneuerbar [%]')
+    plt.ylabel('Anzahl an Viertelstunden')
+    plt.title(filename)
+
+    # Speichern und anzeigen
+    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 def plotHistogramErzeuger(df, filename: str):
@@ -63,6 +78,33 @@ def plotHistogramErzeuger(df, filename: str):
 
     for i, value in enumerate(summen):
         plt.text(i, value + 1, f'{value:.2f}TWh', ha='center', va='bottom')
+
+    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+def plotBalken(df, filename: str):
+
+    path = "../data/" + filename + ".png"
+    erzeuger_spalten = [
+        'Biomasse', 'Wasserkraft', 'Wind Offshore', 
+        'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
+        'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
+        'Pumpspeicher', 'Sonstige Konventionelle'
+    ]
+    
+
+    summen = df[erzeuger_spalten].sum()/(1e+6)
+    
+
+    plt.figure(figsize=(10, 6))
+    summen.plot(kind='bar', color='skyblue')
+    plt.title(filename)
+    plt.ylabel('Energieerzeugung in TWh')
+    plt.xlabel('Erzeuger')
+    plt.xticks(rotation=15)
+
+    for i, value in enumerate(summen):
+        plt.text(i, value + 1, f'{value:.2f}', ha='center', va='bottom')
 
     plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
     plt.show()
@@ -95,6 +137,24 @@ def plotPieChart(df, filename: str):
 
     labels = [f'Erneuerbare Energie ({erneuerbare_summe:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
     values = [erneuerbare_summe, konventionelle_summe]
+
+    plt.figure(figsize=(10, 6))
+    plt.pie(values, labels=labels, autopct='%1.2f%%', startangle=90)
+    plt.title(filename)
+    plt.savefig(path, format='png', dpi=300)
+
+    plt.show()
+
+def plotPieChartVer(df, df2, filename: str):
+    path = "../data/" + filename + ".png"
+
+    
+    erneuerbare_summe = (df['Gesamt'].sum().sum()-df['Residuallast'].sum().sum())/(1e+6)
+    erneuerbare_summe_res = (df2['Biomasse'].sum().sum()+ df2['Wasserkraft'].sum().sum() + df2['Sonstige Erneuerbare'].sum().sum())/(1e+6)
+    konventionelle_summe = df['Residuallast'].sum().sum()/(1e+6)- erneuerbare_summe_res
+
+    labels = [f'Photovoltaik und Windkraft ({erneuerbare_summe:.2f} TWh)', f'Biomasse, Wasserkraft, Sonst. EEs ({erneuerbare_summe_res:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
+    values = [erneuerbare_summe, erneuerbare_summe_res ,konventionelle_summe]
 
     plt.figure(figsize=(10, 6))
     plt.pie(values, labels=labels, autopct='%1.2f%%', startangle=90)
@@ -147,3 +207,4 @@ def plotPieErzeugerKonv(df, filename: str):
     plt.title(filename)
     plt.savefig(path, format='png', dpi=300)
     plt.show()
+
