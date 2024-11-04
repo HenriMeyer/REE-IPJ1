@@ -4,10 +4,11 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase.pdfmetrics import stringWidth
 
 
 # Get data and input is filename of the source, don't forget '.csv'
-def read_SMARD(filename, generation:bool = True):
+def read_SMARD(filename, generation:bool = True) -> pd.DataFrame:
     # Path -> move up a directory
     path = "../data/" + filename
     
@@ -56,7 +57,7 @@ def read_SMARD(filename, generation:bool = True):
                 'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
                 'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
                 'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas',
-                'Sonstige Konventionelle','Erneuerbar','Anteil Erneuerbar [%]', 'Total', 'Residual'
+                'Sonstige Konventionelle','Erneuerbar','Anteil Erneuerbar [%]', 'Total'
             ]
             df = df[new_order]
         else:
@@ -93,13 +94,37 @@ def formatTime(df):
 def sumColumn(df, columnName: str):
     return df.loc[:,columnName].sum(axis=0)
 
+# dataframe manipulation for files
+# Manipulation for generation
+def genForFiles(df: pd):
+    numberRows = df.shape[0]
+    df = df[['Jahr', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 
+                'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
+                'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
+                'Pumpspeicher', 'Sonstige Konventionelle', 'Erneuerbar', 
+                'Anteil Erneuerbar [%]', 'Total']]
+    
+    df = df.groupby('Jahr').sum().reset_index()
+    for column in df.columns:
+        if column not in ['Jahr', 'Anteil Erneuerbar [%]']:
+            df[column] = round(df[column] / 1e+6,3)
+    df['Anteil Erneuerbar [%]'] = round(df['Anteil Erneuerbar [%]'] / numberRows,2)
+    return df
+
+def conForFiles(df: pd):
+    df = df[['Jahr', 'Gesamt', 'Residuallast', 'Pumpspeicher']]
+    df = df.groupby('Jahr').sum().reset_index()
+    for column in df.columns:
+        if column not in ['Jahr']:
+            df[column] = round(df[column] / 1e+6,3)
+    return df
+
 
 # Generation
 # Add further information
-def addDataInformation(df):
+def addDataInformation(df) -> pd.DataFrame:
     df['Erneuerbar'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)
     df['Total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)
-    df['Residual'] = df['Total']- df['Erneuerbar']
     return df
 
 def addPercantageRenewable(df):
@@ -131,56 +156,37 @@ def countPercentageRenewableExclude(df):
 # Consumption
 
 
+# Creation of files
 # Save 'IstAnalyse' data in csv
-def appendCSV(df1, df2, df3, df4, df5, df6):
+def appendCSV(generation: list, consumption: list):
     filePath = '../Output/Datensatz.csv'
-    generation = [df1, df2, df3]
-    consumption = [df4, df5, df6]
     with open(filePath, 'w') as file:
         file.write("Stromerzeugung von 2021-2023\n")
     write_header = True
     for df in generation:
-        numberRows = df.shape[0]
-        df = df[['Jahr', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 
-                 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
-                 'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
-                 'Pumpspeicher', 'Sonstige Konventionelle', 'Erneuerbar', 
-                 'Anteil Erneuerbar [%]', 'Total', 'Residual']]
-        
-        df = df.groupby('Jahr').sum().reset_index()
-        for column in df.columns:
-            if column not in ['Jahr', 'Anteil Erneuerbar [%]']:
-                df[column] = round(df[column] / 1e+6,3)
-        df['Anteil Erneuerbar [%]'] = round(df['Anteil Erneuerbar [%]'] / numberRows,2)
-        
-        df.to_csv(filePath, mode='a', header=write_header, index=False, sep=';', decimal=',')
+        genForFiles(df).to_csv(filePath, mode='a', header=write_header, index=False, sep=';', decimal=',')
         write_header = False
     write_header = True
     with open(filePath, 'a') as file:
         file.write("Stromverbrauch von 2021-2023\n")
     for df in consumption:
-        df = df[['Jahr', 'Gesamt', 'Residuallast', 'Pumpspeicher']]
-        df = df.groupby('Jahr').sum().reset_index()
-        for column in df.columns:
-            if column not in ['Jahr']:
-                df[column] = round(df[column] / 1e+6,3)
-        df.to_csv(filePath, mode='a', header=write_header, index=False, sep=';', decimal=',')
+        conForFiles(df).to_csv(filePath, mode='a', header=write_header, index=False, sep=';', decimal=',')
         write_header = False
     with open(filePath, 'a') as file:
         file.write("Alle Werte sind in TWh angegeben\n")
         file.write("https://www.smard.de/home/downloadcenter/download-marktdaten/\n")
 
 # Save 'IstAnalyse' in PDF
-def pdfAnalysis():
+def pdfAnalysis(generation: list, consumption: list):
     
     # Dokument und Format festlegen
-    pdf_path = "../Output/IstAnalyse.pdf"
-    document = SimpleDocTemplate(pdf_path, pagesize=A4)
+    pdfPath = "../Output/IstAnalyse.pdf"
+    document = SimpleDocTemplate(pdfPath, pagesize=A4)
 
     # Inhaltsliste für das Dokument
     elements = []
 
-    # Style
+    # Setup
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="Header", fontSize=18, leading=22, alignment=1, spaceAfter=12, textColor=colors.darkblue))
     
@@ -191,6 +197,7 @@ def pdfAnalysis():
     # Header
     elements.append(Paragraph("IstAnalyse der Jahre 2021-2023", styles["Header"]))
 
+    
     # Text
     
     # Zeilenumbruch hinzufügen
@@ -206,24 +213,37 @@ def pdfAnalysis():
 
 
     # Tabel
-    data = [
-        ["Name", "Alter", "Beruf"],
-        ["Anna", "28", "Ingenieurin"],
-        ["Max", "35", "Lehrer"],
-        ["Lena", "22", "Studentin"]
-    ]
-
+    # Setup
+    font_name = "Helvetica"
+    font_size = 10
+    col_widths = []
+    
+    for df in generation:
+        gen = genForFiles(df)
+        table_data = [gen.columns.tolist()] + gen.values.tolist()
+        
+    for col in generation[0].columns:
+        max_width = max(
+            [stringWidth(str(value), font_name, font_size) for value in generation[0][col]] + 
+            [stringWidth(col, font_name, font_size)]
+        )
+        col_widths.append(max_width)  # +10 für Polsterung
+    
     # Tabelle formatieren
-    table = Table(data)
+    row_heights = [30] + [25] * (len(table_data) - 1)  # Erste Zeile größer, andere Zeilen kleiner
+    table = Table(table_data, colWidths=col_widths, rowHeights=row_heights)
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-    ]))
+    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),            # Kopfzeile mit Hintergrundfarbe
+    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),       # Textfarbe für Kopfzeile
+    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),                   # Zentrierte Ausrichtung
+    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),         # Fettgedruckt für Kopfzeile
+    ('FONTSIZE', (0, 0), (-1, 0), 8),                       # Schriftgröße für Kopfzeile (12 Punkte)
+    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),             # Normale Schrift für den Rest der Tabelle
+    ('FONTSIZE', (0, 1), (-1, -1), 8),                      # Schriftgröße für die restliche Tabelle (10 Punkte)
+    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),                  # Polsterung unten für Kopfzeile
+    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),          # Hintergrundfarbe für die restlichen Zeilen
+    ('GRID', (0, 0), (-1, -1), 1, colors.black),             # Rahmen/Gitterlinien für die gesamte Tabelle
+]))
 
     # Tabelle zum Inhalt hinzufügen
     elements.append(table)
@@ -231,12 +251,13 @@ def pdfAnalysis():
     # PDF erstellen
     document.build(elements)
 
-    print("PDF wurde erfolgreich erstellt und gespeichert unter:", pdf_path)
+    print("PDF wurde erfolgreich erstellt und gespeichert unter:", pdfPath)
 
 
 if __name__ == "__main__":
-    # df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
-    df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
+    df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
+    # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
+    print(sumColumn(df,'Wind Offshore'))
+    print(sumColumn(df,'Wind Onshore'))
     print(df)
-    pdfAnalysis()
     # print(sumColumn(df,"Photovoltaik"))
