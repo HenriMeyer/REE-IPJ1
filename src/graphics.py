@@ -42,34 +42,6 @@ def plotHistogramPercent(vec, filename: str):
     
     plt.show()
     
-def plotHistogramStorage(df, filename: str):
-    # Datei-Pfad für das Speichern
-    path = "../data/" + filename + ".png"
-    
-    # Berechnung der Summen der einzelnen Technologien in TWh
-    storage_data = (df.loc[:, ['Pumpspeicher', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Kernenergie']]
-                    .sum(axis=0) / 1e+6).round(2)
-    
-    # Plot
-    plt.figure(figsize=(10, 6))
-    ax = storage_data.plot(kind='bar', color='skyblue')
-    
-    # Labels und Titel
-    plt.xlabel('Energiespeichertechnologien')
-    plt.ylabel('Energieerzeugung [TWh]')
-    plt.title('Regelbare Kraftwerkleistung 2023')
-    
-    # Drehung der x-Achsen-Beschriftungen auf 0 setzen
-    plt.xticks(rotation=0)
-    
-    # Werte über den Balken anzeigen
-    for i, value in enumerate(storage_data):
-        plt.text(i, value + 1, f"{value}", ha='center', va='bottom', fontsize=10)
-    
-    # Diagramm speichern
-    plt.savefig(path, format='png', dpi=300, bbox_inches='tight')
-    plt.show()
-    
 def plotPiePercent(vec, filename: str):
 
     path = "../data/" + filename + ".png"
