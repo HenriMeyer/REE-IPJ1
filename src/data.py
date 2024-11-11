@@ -78,7 +78,7 @@ def read_SMARD(filename, generation:bool = True) -> pd.DataFrame:
 
 # General
 # Add further information
-def formatTime(df):
+def formatTime(df) -> pd.DataFrame:
     # Extract year, month, day, hour, minute from 'Datum von'
     df['Jahr'] = df['Datum von'].dt.year
     df['Monat'] = df['Datum von'].dt.month
@@ -91,12 +91,12 @@ def formatTime(df):
     return df
 
 # Sum of one column
-def sumColumn(df, columnName: str):
+def sumColumn(df, columnName: str) -> np.float64:
     return df.loc[:,columnName].sum(axis=0)
 
 # dataframe manipulation for files
 # Manipulation for generation
-def genForFiles(df: pd):
+def genForFiles(df: pd) -> pd.DataFrame:
     numberRows = df.shape[0]
     df = df[['Jahr', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 
                 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
@@ -111,7 +111,7 @@ def genForFiles(df: pd):
     df['Anteil Erneuerbar [%]'] = round(df['Anteil Erneuerbar [%]'] / numberRows,2)
     return df
 
-def conForFiles(df: pd):
+def conForFiles(df: pd) -> pd.DataFrame:
     df = df[['Jahr', 'Gesamt', 'Residuallast', 'Pumpspeicher']]
     df = df.groupby('Jahr').sum().reset_index()
     for column in df.columns:
@@ -132,7 +132,7 @@ def addPercantageRenewable(df):
     return df
 
 # Renewable portion for each row
-def countPercentageRenewable(df):
+def countPercentageRenewable(df) -> list:
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
     vector = np.zeros(11, dtype=int)
     
@@ -143,7 +143,7 @@ def countPercentageRenewable(df):
     return vector.tolist()
 
 # Renewable portion for each row excluding already counted
-def countPercentageRenewableExclude(df):
+def countPercentageRenewableExclude(df) -> list:
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
     vector = np.zeros(11, dtype=int)
     
