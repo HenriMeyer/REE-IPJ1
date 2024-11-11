@@ -1,0 +1,12 @@
+Stromerzeugung von 2021-2023
+Jahr;Biomasse;Wasserkraft;Wind Offshore;Wind Onshore;Photovoltaik;Sonstige Erneuerbare;Kernenergie;Braunkohle;Steinkohle;Erdgas;Pumpspeicher;Sonstige Konventionelle;Erneuerbar;Anteil Erneuerbar [%];Total;Residual
+2021;39,46;14,888;24,01;89,412;46,607;1,543;65,406;98,202;51,842;60,121;8,264;13,099;224,185;42,68;512,854;288,669
+2022;39,47;12,804;24,748;100,567;55,667;1,223;32,824;103,526;62,89;44,167;10,154;11,516;244,633;47,47;499,555;254,922
+2023;37,826;15,02;23,52;118,782;55,717;1,168;6,741;77,844;39,75;50,143;10,647;11,591;262,679;57,55;448,749;186,069
+Stromverbrauch von 2021-2023
+Jahr;Gesamt;Residuallast;Pumpspeicher
+2021;504,587;344,509;10,512
+2022;482,314;301,332;13,593
+2023;458,374;260,355;13,299
+Alle Werte sind in TWh angegeben
+https://www.smard.de/home/downloadcenter/download-marktdaten/
