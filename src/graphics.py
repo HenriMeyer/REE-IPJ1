@@ -42,7 +42,6 @@ def plotHistogramPercent(vec, filename: str):
     
     plt.show()
     
-    
 def plotPiePercent(vec, filename: str):
 
     path = "../data/" + filename + ".png"
