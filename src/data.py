@@ -89,31 +89,6 @@ def formatTime(df) -> pd.DataFrame:
 def sumColumn(df, columnName: str) -> np.float64:
     return df.loc[:,columnName].sum(axis=0)
 
-# dataframe manipulation for files
-# Manipulation for generation
-def genForFiles(df: pd) -> pd.DataFrame:
-    numberRows = df.shape[0]
-    df = df[['Jahr', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 
-                'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
-                'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
-                'Pumpspeicher', 'Sonstige Konventionelle', 'Erneuerbar', 
-                'Anteil Erneuerbar [%]', 'Total']]
-    
-    df = df.groupby('Jahr').sum().reset_index()
-    for column in df.columns:
-        if column not in ['Jahr', 'Anteil Erneuerbar [%]']:
-            df[column] = round(df[column] / 1e+6,3)
-    df['Anteil Erneuerbar [%]'] = round(df['Anteil Erneuerbar [%]'] / numberRows,2)
-    return df
-
-def conForFiles(df: pd) -> pd.DataFrame:
-    df = df[['Jahr', 'Gesamt', 'Residuallast', 'Pumpspeicher']]
-    df = df.groupby('Jahr').sum().reset_index()
-    for column in df.columns:
-        if column not in ['Jahr']:
-            df[column] = round(df[column] / 1e+6,3)
-    return df
-
 
 # Generation
 # Add further information
@@ -146,9 +121,6 @@ def countPercentageRenewableExclude(df) -> list:
         vector[i] = np.sum((renewable_percentage >= 10 * i) & (renewable_percentage < 10 * (i+1)))
         
     return vector.tolist()
-
-
-# Consumption
 
 
 # For Testing
