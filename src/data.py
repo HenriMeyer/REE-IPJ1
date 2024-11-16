@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 
 # Get data and input is filename of the source, don't forget '.csv'
@@ -122,12 +123,44 @@ def countPercentageRenewableExclude(df) -> list:
         
     return vector.tolist()
 
+# Append to csv
+def append_sum_to_csv(df: pd.DataFrame, csv_filename: str):
+    # Erstelle eine leere Liste, um die Summen der relevanten Spalten zu speichern
+    year_summaries = []
+
+    # Iteriere durch die Jahre im DataFrame
+    unique_years = df['Jahr'].unique()
+    for year in unique_years:
+        # Filtere den DataFrame für das aktuelle Jahr
+        yearly_data = df[df['Jahr'] == year]
+        
+        # Berechne die Summe für jede Spalte
+        column_sums = yearly_data.sum(numeric_only=True)
+        
+        # Erstelle eine Zeile für das Jahr mit den berechneten Summen
+        summary_row = {'Jahr': year}
+        summary_row.update(column_sums.to_dict())
+        
+        # Füge die Zeile zur Liste hinzu
+        year_summaries.append(summary_row)
+
+    # Erstelle einen DataFrame aus den Jahreszusammenfassungen
+    summary_df = pd.DataFrame(year_summaries)
+
+    # Überprüfe, ob die CSV-Datei bereits existiert
+    if os.path.exists(csv_filename):
+        # Falls ja, hänge die neuen Daten an
+        summary_df.to_csv(csv_filename, mode='a', header=False, index=False)
+    else:
+        # Falls nein, schreibe die Datei mit Header
+        summary_df.to_csv(csv_filename, mode='w', header=True, index=False)
+
+    print(f"Summen der Jahre wurden erfolgreich zu {csv_filename} hinzugefügt.")
+
 
 # For Testing
 if __name__ == "__main__":
     df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
     # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
-    print(sumColumn(df,'Wind Offshore'))
-    print(sumColumn(df,'Wind Onshore'))
     print(df)
     # print(sumColumn(df,"Photovoltaik"))
