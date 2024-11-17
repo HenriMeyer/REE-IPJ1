@@ -123,39 +123,62 @@ def countPercentageRenewableExclude(df) -> list:
         
     return vector.tolist()
 
-# Append to csv
-def append_sum_to_csv(df: pd.DataFrame, csv_filename: str):
-    # Erstelle eine leere Liste, um die Summen der relevanten Spalten zu speichern
-    year_summaries = []
+# Append to CSV
 
-    # Iteriere durch die Jahre im DataFrame
+# Yearly
+def appendYearlyCSV(df: pd.DataFrame, csv_filename: str):
+    csv_filename = csv_filename + str(df.loc[0, "Jahr"]) + "_" + str(df["Jahr"].max()) + ".csv"
+    # Liste aller numerischen Spalten, die summiert werden sollen
+    numeric_columns_to_sum = df.select_dtypes(include='number').columns.tolist()
+
+    # Überprüfen, ob "Jahr" in den Spalten enthalten ist und hinzufügen
+    if 'Jahr' not in numeric_columns_to_sum:
+        numeric_columns_to_sum.insert(0, 'Jahr')
+
+    # Erstelle eine Header-Zeile mit den Spaltennamen
+    header = ['Jahr'] + [col for col in numeric_columns_to_sum if col != 'Jahr']
+
+    # Überprüfen, ob die CSV-Datei existiert, um den Header nur einmal hinzuzufügen
+    if not os.path.exists(csv_filename):
+        with open(csv_filename, 'w') as f:
+            f.write(';'.join(header) + '\n')  # Header schreiben
+
+    # Iteriere durch die eindeutigen Jahre im DataFrame
     unique_years = df['Jahr'].unique()
-    for year in unique_years:
-        # Filtere den DataFrame für das aktuelle Jahr
+    for year in sorted(unique_years):
         yearly_data = df[df['Jahr'] == year]
-        
-        # Berechne die Summe für jede Spalte
-        column_sums = yearly_data.sum(numeric_only=True)
-        
-        # Erstelle eine Zeile für das Jahr mit den berechneten Summen
-        summary_row = {'Jahr': year}
-        summary_row.update(column_sums.to_dict())
-        
-        # Füge die Zeile zur Liste hinzu
-        year_summaries.append(summary_row)
 
-    # Erstelle einen DataFrame aus den Jahreszusammenfassungen
-    summary_df = pd.DataFrame(year_summaries)
+        # Berechne die Summen der numerischen Spalten
+        sum_row = [year]  # Beginne mit dem Jahr
+        for col in numeric_columns_to_sum:
+            if col != 'Jahr':
+                sum_value = yearly_data[col].sum()
+                sum_row.append(str(round(sum_value, 2)).replace('.', ','))
 
-    # Überprüfe, ob die CSV-Datei bereits existiert
-    if os.path.exists(csv_filename):
-        # Falls ja, hänge die neuen Daten an
-        summary_df.to_csv(csv_filename, mode='a', header=False, index=False)
+        # Speichere die Zeile als CSV-Eintrag
+        with open(csv_filename, 'a') as f:
+            f.write(';'.join(map(str, sum_row)) + '\n')
+
+    print(f"Jährliche Summen erfolgreich zu {csv_filename} hinzugefügt.")
+
+# Minutes
+def appendMinutesCSV(df: pd.DataFrame, csv_filename: str, specific_year: int):
+    # Filtere den DataFrame nach dem spezifischen Jahr
+    csv_filename = csv_filename + str(specific_year) + ".csv"
+    yearly_data = df[df['Jahr'] == specific_year]
+
+    # Überprüfen, ob die CSV-Datei existiert, um den Header nur einmal hinzuzufügen
+    if not os.path.exists(csv_filename):
+        # Schreibe die Header-Zeile mit den Spaltennamen
+        yearly_data.to_csv(csv_filename, sep=';', index=False, mode='w', header=True)
     else:
-        # Falls nein, schreibe die Datei mit Header
-        summary_df.to_csv(csv_filename, mode='w', header=True, index=False)
+        # Schreibe die Daten ohne Header
+        yearly_data.to_csv(csv_filename, sep=';', decimal=',', index=False, mode='a', header=False)
 
-    print(f"Summen der Jahre wurden erfolgreich zu {csv_filename} hinzugefügt.")
+    print(f"Daten für das Jahr {specific_year} erfolgreich zu {csv_filename} hinzugefügt.")
+
+
+
 
 
 # For Testing

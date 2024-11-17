@@ -2,6 +2,7 @@ import data
 import gui
 import graphics
 import simulation
+import pandas as pd
 
 prognose = {
     'Biomasse': 1340000.0, 
@@ -28,6 +29,7 @@ def main():
     # con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
     # generation = [gen21, gen22, gen23]
     # consumption = [con21, con22, con23]
+    currentSimulation = pd.DataFrame()
     
     # print(gen23)
     # print(simulation.simulation(gen23, prognose))
@@ -48,11 +50,14 @@ def main():
                 exit()
             case "simulation":
                 print("Running the simulation...")
-                simu = simulation.simulation(gen23)
-                print(simu)
-                data.append_sum_to_csv(simu, "Simulation.csv")
+                currentSimulation = simulation.simulation(gen23)
+                print(currentSimulation)
+            case "appendcsv":
+                # Man braucht nicht gen23 mitreinzuschreiben nur fürs testen -> '[gen23, currentSimulation.copy()]' -> 'currentSimulation.copy()'
+                data.appendYearlyCSV(pd.concat([gen23, currentSimulation.copy()], ignore_index=True), "Simulation")
+                data.appendMinutesCSV(currentSimulation, "Simulation", 2026)
             # case "help":
-                
+            # 40000000
             case _:
                 print(f"{'\033[31m'}Unrecognized command: {user_input}{'\033[0m'}")
                 
