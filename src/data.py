@@ -138,10 +138,9 @@ def appendYearlyCSV(df: pd.DataFrame, csv_filename: str):
     # Erstelle eine Header-Zeile mit den Spaltennamen
     header = ['Jahr'] + [col for col in numeric_columns_to_sum if col != 'Jahr']
 
-    # Überprüfen, ob die CSV-Datei existiert, um den Header nur einmal hinzuzufügen
-    if not os.path.exists(csv_filename):
-        with open(csv_filename, 'w') as f:
-            f.write(';'.join(header) + '\n')  # Header schreiben
+    # Die Datei wird immer überschrieben
+    with open(csv_filename, 'w') as f:
+        f.write(';'.join(header) + '\n')  # Header schreiben
 
     # Iteriere durch die eindeutigen Jahre im DataFrame
     unique_years = df['Jahr'].unique()
@@ -159,23 +158,16 @@ def appendYearlyCSV(df: pd.DataFrame, csv_filename: str):
         with open(csv_filename, 'a') as f:
             f.write(';'.join(map(str, sum_row)) + '\n')
 
-    print(f"Jährliche Summen erfolgreich zu {csv_filename} hinzugefügt.")
+    print(f"{csv_filename} has been created.")
+
 
 # Minutes
 def appendMinutesCSV(df: pd.DataFrame, csv_filename: str, specific_year: int):
-    # Filtere den DataFrame nach dem spezifischen Jahr
     csv_filename = csv_filename + str(specific_year) + ".csv"
     yearly_data = df[df['Jahr'] == specific_year]
+    yearly_data.to_csv(csv_filename, sep=';', decimal=',', index=False, mode='w', header=True)
 
-    # Überprüfen, ob die CSV-Datei existiert, um den Header nur einmal hinzuzufügen
-    if not os.path.exists(csv_filename):
-        # Schreibe die Header-Zeile mit den Spaltennamen
-        yearly_data.to_csv(csv_filename, sep=';', index=False, mode='w', header=True)
-    else:
-        # Schreibe die Daten ohne Header
-        yearly_data.to_csv(csv_filename, sep=';', decimal=',', index=False, mode='a', header=False)
-
-    print(f"Daten für das Jahr {specific_year} erfolgreich zu {csv_filename} hinzugefügt.")
+    print(f"{csv_filename} has been created for {specific_year}.")
 
 
 

@@ -53,8 +53,9 @@ def main():
                 currentSimulation = simulation.simulation(gen23)
                 print(currentSimulation)
             case "appendcsv":
-                # Man braucht nicht gen23 mitreinzuschreiben nur fürs testen -> '[gen23, currentSimulation.copy()]' -> 'currentSimulation.copy()'
-                data.appendYearlyCSV(pd.concat([gen23, currentSimulation.copy()], ignore_index=True), "Simulation")
+                # Testen: 'pd.concat([gen23, currentSimulation.copy()], ignore_index=True)' <---> 'currentSimulation.copy()'
+                # => Dann werden Spalten wie 'Total' mit ausgegeben -> Nicht gut
+                data.appendYearlyCSV(currentSimulation.copy(), "Simulation")
                 data.appendMinutesCSV(currentSimulation, "Simulation", 2026)
             # case "help":
             # 40000000
