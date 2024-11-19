@@ -1,10 +1,6 @@
 import pandas as pd
 import numpy as np
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Image, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfbase.pdfmetrics import stringWidth
+import os
 
 
 # Get data and input is filename of the source, don't forget '.csv'
@@ -80,7 +76,7 @@ def read_SMARD(filename, generation:bool = True) -> pd.DataFrame:
 
 # General
 # Add further information
-def formatTime(df):
+def formatTime(df) -> pd.DataFrame:
     # Extract year, month, day, hour, minute from 'Datum von'
     df['Jahr'] = df['Datum von'].dt.year
     df['Monat'] = df['Datum von'].dt.month
@@ -93,33 +89,8 @@ def formatTime(df):
     return df
 
 # Sum of one column
-def sumColumn(df, columnName: str):
+def sumColumn(df, columnName: str) -> np.float64:
     return df.loc[:,columnName].sum(axis=0)
-
-# dataframe manipulation for files
-# Manipulation for generation
-def genForFiles(df: pd):
-    numberRows = df.shape[0]
-    df = df[['Jahr', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 
-                'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
-                'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
-                'Pumpspeicher', 'Sonstige Konventionelle', 'Erneuerbar', 
-                'Anteil Erneuerbar [%]', 'Total']]
-    
-    df = df.groupby('Jahr').sum().reset_index()
-    for column in df.columns:
-        if column not in ['Jahr', 'Anteil Erneuerbar [%]']:
-            df[column] = round(df[column] / 1e+6,3)
-    df['Anteil Erneuerbar [%]'] = round(df['Anteil Erneuerbar [%]'] / numberRows,2)
-    return df
-
-def conForFiles(df: pd):
-    df = df[['Jahr', 'Gesamt', 'Residuallast', 'Pumpspeicher']]
-    df = df.groupby('Jahr').sum().reset_index()
-    for column in df.columns:
-        if column not in ['Jahr']:
-            df[column] = round(df[column] / 1e+6,3)
-    return df
 
 
 # Generation
@@ -138,7 +109,7 @@ def addPercentageRenewableLast(df, df2):
     return df
 
 # Renewable portion for each row
-def countPercentageRenewable(df):
+def countPercentageRenewable(df) -> list:
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
     vector = np.zeros(11, dtype=int)
     
@@ -149,7 +120,7 @@ def countPercentageRenewable(df):
     return vector.tolist()
 
 # Renewable portion for each row excluding already counted
-def countPercentageRenewableExclude(df):
+def countPercentageRenewableExclude(df) -> list:
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
     vector = np.zeros(11, dtype=int)
     
@@ -159,15 +130,65 @@ def countPercentageRenewableExclude(df):
         
     return vector.tolist()
 
+# Append to CSV
 
-# Consumption
+# Yearly
+def appendYearlyCSV(df: pd.DataFrame, csv_filename: str):
+    csv_filename = "../Output/" + csv_filename + str(df.loc[0, "Jahr"]) + "_" + str(df["Jahr"].max()) + ".csv"
+    
+    df['Jahr'] = pd.to_numeric(df['Jahr'], errors='coerce', downcast='integer')
+    # Liste aller numerischen Spalten, die summiert werden sollen
+    numeric_columns_to_sum = df.select_dtypes(include='number').columns.tolist()
+
+    # Überprüfen, ob "Jahr" in den Spalten enthalten ist und hinzufügen
+    if 'Jahr' not in numeric_columns_to_sum:
+        numeric_columns_to_sum.insert(0, 'Jahr')
+
+    # Erstelle eine Header-Zeile mit den Spaltennamen
+    header = ['Jahr'] + [col for col in numeric_columns_to_sum if col != 'Jahr']
+
+    # Die Datei wird immer überschrieben
+    with open(csv_filename, 'w') as f:
+        f.write(';'.join(header) + '\n')  # Header schreiben
+
+    # Iteriere durch die eindeutigen Jahre im DataFrame
+    unique_years = df['Jahr'].unique()
+    for year in sorted(unique_years):
+        yearly_data = df[df['Jahr'] == year]
+
+        # Berechne die Summen der numerischen Spalten
+        sum_row = [year]  # Beginne mit dem Jahr
+        for col in numeric_columns_to_sum:
+            if col != 'Jahr':
+                sum_value = yearly_data[col].sum()
+                sum_row.append(str(round(sum_value, 2)).replace('.', ','))
+
+        # Speichere die Zeile als CSV-Eintrag
+        with open(csv_filename, 'a') as f:
+            f.write(';'.join(map(str, sum_row)) + '\n')
+
+    print(f"{csv_filename} has been created.")
+
+
+# Minutes
+def appendMinutesCSV(df: pd.DataFrame, csv_filename: str):
+    print(df['Datum von'].astype)
+    year = str(df['Datum von'].dt.year.iloc[0])
+    csv_filename = "../Output/" + csv_filename + "_" + year + ".csv"
+    
+    df['Datum von'] = df['Datum von'].dt.strftime('%d.%m.%Y %H:%M:%S')
+    df['Datum bis'] = df['Datum bis'].dt.strftime('%d.%m.%Y %H:%M:%S')
+    df.to_csv(csv_filename, sep=';', decimal=',', index=False, mode='w', header=True)
+
+    print(f"{csv_filename} has been created for {year}.")
+
+
+
 
 
 # For Testing
 if __name__ == "__main__":
     df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
     # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
-    print(sumColumn(df,'Wind Offshore'))
-    print(sumColumn(df,'Wind Onshore'))
     print(df)
     # print(sumColumn(df,"Photovoltaik"))
