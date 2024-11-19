@@ -29,7 +29,7 @@ def main():
     # con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
     # generation = [gen21, gen22, gen23]
     # consumption = [con21, con22, con23]
-    currentSimulation = pd.DataFrame()
+    simulationList = list()
     
     # print(gen23)
     # print(simulation.simulation(gen23, prognose))
@@ -50,13 +50,13 @@ def main():
                 exit()
             case "simulation":
                 print("Running the simulation...")
-                currentSimulation = simulation.simulation(gen23)
-                print(currentSimulation)
+                simulationList = simulation.simulation(gen23)
             case "appendcsv":
                 # Testen: 'pd.concat([gen23, currentSimulation.copy()], ignore_index=True)' <---> 'currentSimulation.copy()'
                 # => Dann werden Spalten wie 'Total' mit ausgegeben -> Nicht gut
-                data.appendYearlyCSV(currentSimulation.copy(), "Simulation")
-                data.appendMinutesCSV(currentSimulation, "Simulation", 2026)
+                # data.appendYearlyCSV(currentSimulation.copy(), "Simulation")
+                for df in simulationList:
+                    data.appendMinutesCSV(df, "Simulation")
             # case "help":
             # 40000000
             case _:
