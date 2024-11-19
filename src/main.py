@@ -52,13 +52,13 @@ def main():
             # case "help":
             # 40000000
             case _:
-                print(f"{'\033[31m'}Unrecognized command: {user_input}{'\033[0m'}")
+                print(f"\033[31mUnrecognized command: {user_input}\033[0m")
                 
 # def commands():
 #     return "Valid commands"
 
-    print(gen21)
-    graphics.plotHeatmap(gen22, 'Wind Onshore', 'Monat', 'Uhrzeit', 'Heatmap % ')
+    #print(gen21)
+    #graphics.plotHeatmap(gen22, 'Wind Onshore', 'Monat', 'Uhrzeit', 'Heatmap % ')
     #plot_data(gen21, con21, '2021')
 
 

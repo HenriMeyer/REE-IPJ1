@@ -23,7 +23,7 @@ def simulation(df: pd.DataFrame) -> list:
         if generationYear.isdigit() and int(generationYear) > startYear:
                 break
         else:
-            print(f"{'\033[31m'}{generationYear} is an invalid input, it has to be bigger than {startYear} and a digit!{'\033[0m'}")
+            print(f"'\033[31m'{generationYear} is an invalid input, it has to be bigger than {startYear} and a digit!'\033[0m'")
     for key in generation:
         while True:
             try:
