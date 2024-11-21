@@ -183,9 +183,6 @@ def appendMinutesCSV(df: pd.DataFrame, csv_filename: str):
     print(f"{csv_filename} has been created for {year}.")
 
 
-
-
-
 # For Testing
 if __name__ == "__main__":
     df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
