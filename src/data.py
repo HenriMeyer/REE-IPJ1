@@ -8,6 +8,8 @@ def read_SMARD(filename, generation:bool = True) -> pd.DataFrame:
     # Path -> move up a directory
     path = "../data/" + filename
     
+    
+
     # Try block
     try:
         # Read file
@@ -102,6 +104,10 @@ def addPercantageRenewable(df):
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)/df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)*100).round(2)
     return df
 
+def addPercentageRenewableLast(df, df2):
+    df['Anteil Erneuerbar [%]'] = (df2.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare']].sum(axis=1)/df['Gesamt']*100).round(2)
+    return df
+
 # Renewable portion for each row
 def countPercentageRenewable(df) -> list:
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
@@ -118,8 +124,9 @@ def countPercentageRenewableExclude(df) -> list:
     renewable_percentage = df['Anteil Erneuerbar [%]'].to_numpy()
     vector = np.zeros(11, dtype=int)
     
-    for i in range(0, 11):
+    for i in range(0, 10):
         vector[i] = np.sum((renewable_percentage >= 10 * i) & (renewable_percentage < 10 * (i+1)))
+    vector[10] = np.sum((renewable_percentage >= 100))
         
     return vector.tolist()
 
@@ -127,7 +134,9 @@ def countPercentageRenewableExclude(df) -> list:
 
 # Yearly
 def appendYearlyCSV(df: pd.DataFrame, csv_filename: str):
-    csv_filename = csv_filename + str(df.loc[0, "Jahr"]) + "_" + str(df["Jahr"].max()) + ".csv"
+    csv_filename = "../Output/" + csv_filename + str(df.loc[0, "Jahr"]) + "_" + str(df["Jahr"].max()) + ".csv"
+    
+    df['Jahr'] = pd.to_numeric(df['Jahr'], errors='coerce', downcast='integer')
     # Liste aller numerischen Spalten, die summiert werden sollen
     numeric_columns_to_sum = df.select_dtypes(include='number').columns.tolist()
 
@@ -162,12 +171,16 @@ def appendYearlyCSV(df: pd.DataFrame, csv_filename: str):
 
 
 # Minutes
-def appendMinutesCSV(df: pd.DataFrame, csv_filename: str, specific_year: int):
-    csv_filename = csv_filename + str(specific_year) + ".csv"
-    yearly_data = df[df['Jahr'] == specific_year]
-    yearly_data.to_csv(csv_filename, sep=';', decimal=',', index=False, mode='w', header=True)
+def appendMinutesCSV(df: pd.DataFrame, csv_filename: str):
+    print(df['Datum von'].astype)
+    year = str(df['Datum von'].dt.year.iloc[0])
+    csv_filename = "../Output/" + csv_filename + "_" + year + ".csv"
+    
+    df['Datum von'] = df['Datum von'].dt.strftime('%d.%m.%Y %H:%M:%S')
+    df['Datum bis'] = df['Datum bis'].dt.strftime('%d.%m.%Y %H:%M:%S')
+    df.to_csv(csv_filename, sep=';', decimal=',', index=False, mode='w', header=True)
 
-    print(f"{csv_filename} has been created for {specific_year}.")
+    print(f"{csv_filename} has been created for {year}.")
 
 
 
