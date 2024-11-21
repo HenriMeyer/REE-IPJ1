@@ -27,15 +27,17 @@ def main():
     # con21 = data.read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
     # con22 = data.read_SMARD("Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv", False)
     # con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
+    simulationList = list()
     # generation = [gen21, gen22, gen23]
     # consumption = [con21, con22, con23]
     # graphics.plotHeatmap(gen22, 'Wind Onshore', 'Monat', 'Uhrzeit', 'Heatmap % ')
-    simulationList = list()
     
     print("Simulationtool")
     print("'simulation' -> simulationtool")
     while True:
         user_input = input("Write your commands (or 'quit' to exit the program): ")
+        # print(commands) ==> print commands
+        # 'System.clear()' ==> something like that to clear cmd/powershell
         match user_input.lower():
             case "quit":
                 print("Program will be terminated.")
@@ -43,24 +45,18 @@ def main():
             case "simulation":
                 print("Running the simulation...")
                 simulationList = simulation.simulation(gen23)
+                # 40000000 ==> standardinput strg + c
             case "appendcsv":
-                # Testen: 'pd.concat([gen23, currentSimulation.copy()], ignore_index=True)' <---> 'currentSimulation.copy()'
-                # => Dann werden Spalten wie 'Total' mit ausgegeben -> Nicht gut
-                # data.appendYearlyCSV(currentSimulation.copy(), "Simulation")
-                for df in simulationList:
-                    data.appendMinutesCSV(df, "Simulation")
-            # case "help":
-            # 40000000
+                    continue
+                    # code follows
+            case "writeexcel":
+                print("Writing data to excel...")
+                data.writeExcel(simulationList, "Simulation")
+            case "help":
+                continue
+                # code follows
             case _:
                 print(f"\033[31mUnrecognized command: {user_input}\033[0m")
-                
-# def commands():
-#     return "Valid commands"
-
-    #print(gen21)
-    #graphics.plotHeatmap(gen22, 'Wind Onshore', 'Monat', 'Uhrzeit', 'Heatmap % ')
-    #plot_data(gen21, con21, '2021')
-
 
 def plot_data(dfe, dfv, time):
     graphics.plot_pie_conv(dfe, 'Anteilige Erzeugung Konventioneller '+ time)
