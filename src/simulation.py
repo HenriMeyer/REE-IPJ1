@@ -47,7 +47,7 @@ def simulation(df: pd.DataFrame) -> list:
                 dfCurrent[column] = round(df[column] * (((generation[column] / df[column].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
             else:   
                 print(column + " wasn't simulated.")
-        dfList.append(dfCurrent)
+        dfList.append(dfCurrent.copy())
     
     return dfList
 
@@ -72,7 +72,7 @@ def simulation_use(df: pd.DataFrame) -> list:
         # Replace last year
         dfCurrent.iloc[-1, dfCurrent.columns.get_loc('Datum bis')] = dfCurrent.iloc[-1]['Datum bis'].replace(year=currentYear + 1)
         dfCurrent['Gesamt'] = round(df['Gesamt'] * (((usage / df['Gesamt'].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
-        dfList.append(dfCurrent)
+        dfList.append(dfCurrent.copy())
     
     return dfList
 
