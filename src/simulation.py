@@ -23,7 +23,7 @@ def simulation(df: pd.DataFrame) -> list:
         if generationYear.isdigit() and int(generationYear) > startYear:
                 break
         else:
-            print(f"'\033[31m'{generationYear} is an invalid input, it has to be bigger than {startYear} and a digit!'\033[0m'")
+            print(f"{'\033[31m'}{generationYear} is an invalid input, it has to be bigger than {startYear} and a digit!{'\033[0m'}")
     for key in generation:
         while True:
             try:
@@ -35,7 +35,6 @@ def simulation(df: pd.DataFrame) -> list:
     dfCurrent = df.copy()
     for currentYear in range(startYear + 1, int(generationYear) + 1):
         # Replace years
-        print(dfCurrent['Datum von'].astype)
         dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
         dfCurrent['Datum bis'] = dfCurrent['Datum bis'].map(lambda x: x.replace(year=currentYear))
         # Replace last year
@@ -45,9 +44,9 @@ def simulation(df: pd.DataFrame) -> list:
                 continue
             if column in generation:
                 dfCurrent[column] = round(df[column] * (((generation[column] / df[column].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
-            else:   
+            else:
                 print(column + " wasn't simulated.")
-        dfList.append(dfCurrent)
+        dfList.append(dfCurrent.copy())
     
     return dfList
 
