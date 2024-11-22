@@ -26,7 +26,7 @@ def main():
     gen23 = data.read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
     # con21 = data.read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
     # con22 = data.read_SMARD("Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv", False)
-    # con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
+    con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
     simulationList = list()
     # generation = [gen21, gen22, gen23]
     # consumption = [con21, con22, con23]
@@ -41,10 +41,11 @@ def main():
         match user_input.lower():
             case "quit":
                 print("Program will be terminated.")
-                exit()
+                break
             case "simulation":
                 print("Running the simulation...")
                 simulationList = simulation.simulation(gen23)
+                simulationListUsage = simulation.simulation_use(con23)
                 # 40000000 ==> standardinput strg + c
             case "appendcsv":
                     continue
@@ -57,16 +58,19 @@ def main():
                 # code follows
             case _:
                 print(f"\033[31mUnrecognized command: {user_input}\033[0m")
+    dfe = data.formatTime(simulationList[6])
+    dfv = data.formatTime(simulationListUsage[6])
+    plot_data(dfe, dfv, '2030')
 
 def plot_data(dfe, dfv, time):
     graphics.plot_pie_conv(dfe, 'Anteilige Erzeugung Konventioneller '+ time)
     graphics.plot_pie_rene(dfe, 'Anteilige Erzeugung Erneuerbarer '+ time)
-    graphics.plot_pie_usage(dfv, dfe, 'Erneuerbare vs. Konventionelle Energie Verbrauch '+ time)
+    #graphics.plot_pie_usage(dfv, dfe, 'Erneuerbare vs. Konventionelle Energie Verbrauch '+ time)
     graphics.plot_pie_prod(dfe, 'Erneuerbare vs. Konventionelle Energie '+ time)
     graphics.plot_balk_rene(dfe, 'Anteil der einzelnen Erzeuger an den erneuerbaren Energien '+ time)
     graphics.plot_balk_all(dfe, 'Erzeugte Leistung der einzelnen Energieträger ' + time)
     graphics.plotHistogramPercent(dfe, 'Histogramm Abdeckung der Viertelstunden ' +time)
-    graphics.plotHeatmap(dfe, 'Anteil Erneuerbar [%]', 'Monat', 'Tag', 'Heatmap % ' + time)
+    #graphics.plotHeatmap(dfe, 'Anteil Erneuerbar [%]', 'Monat', 'Tag', 'Heatmap % ' + time)
 
 
 def heatmaps(df):
