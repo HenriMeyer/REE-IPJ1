@@ -11,12 +11,12 @@ generation = {
     'Steinkohle': 40000000,
     'Erdgas': 40000000,
     'Pumpspeicher': 40000000,
-    'Sonstige Konventionelle': 40000000
+    'Sonstige Konventionelle': 40000000,
+    'Verbrauch': 40000000
 }
 generationYear = 2030
 
 def simulation(df: pd.DataFrame) -> list:
-    df = fixDataFrame(df)
     startYear = int(df['Datum von'].dt.year.iloc[0])
     while True:
         generationYear = input("Year for forecast: ")
@@ -31,11 +31,34 @@ def simulation(df: pd.DataFrame) -> list:
                 break
             except ValueError:
                 print("\033[31mInvalid input! Please enter a numeric value.\033[0m")
+    return _simulation(df, generationYear)
+
+def szenario(df: pd.DataFrame) -> list:
+    user_input = input("Choose one: ")
+    match user_input.lower():
+            case "one":
+                generation = {
+                    'Biomasse': 37826000,
+                    'Wasserkraft': 15000000,
+                    'Wind Offshore': 114000000,
+                    'Wind Onshore': 312000000,
+                    'Photovoltaik': 210000000,
+                    'Sonstige Erneuerbare': 1100000,
+                    'Braunkohle': 78000000,
+                    'Steinkohle': 40000000,
+                    'Erdgas': 50143000,
+                    'Pumpspeicher': 10647000,
+                    'Sonstige Konventionelle': 12000000,
+                    'Verbrauch': 712000000
+                }
+    return _simulation(df, 2030)          
+
+def _simulation(df: pd.DataFrame, generationYear: int) -> list:
+    startYear = int(df['Datum von'].dt.year.iloc[0])
     dfList = []
     dfCurrent = df.copy()
     for currentYear in range(startYear + 1, int(generationYear) + 1):
         # Replace years
-        print(dfCurrent['Datum von'].astype)
         dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
         dfCurrent['Datum bis'] = dfCurrent['Datum bis'].map(lambda x: x.replace(year=currentYear))
         # Replace last year
@@ -50,53 +73,3 @@ def simulation(df: pd.DataFrame) -> list:
         dfList.append(dfCurrent.copy())
     
     return dfList
-
-
-
-def simulation_use(df: pd.DataFrame) -> list:
-    df = fixDataFrame2(df)
-    startYear = int(df['Datum von'].dt.year.iloc[0])
-    while True:
-        try:
-            usage = float(input(f"Value for nergyusage: "))
-            break
-        except ValueError:
-            print("\033[31mInvalid input! Please enter a numeric value.\033[0m")
-    dfList = []
-    dfCurrent = df.copy()
-    for currentYear in range(startYear + 1, int(generationYear) + 1):
-        # Replace years
-        print(dfCurrent['Datum von'].astype)
-        dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
-        dfCurrent['Datum bis'] = dfCurrent['Datum bis'].map(lambda x: x.replace(year=currentYear))
-        # Replace last year
-        dfCurrent.iloc[-1, dfCurrent.columns.get_loc('Datum bis')] = dfCurrent.iloc[-1]['Datum bis'].replace(year=currentYear + 1)
-        dfCurrent['Gesamt'] = round(df['Gesamt'] * (((usage / df['Gesamt'].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
-        dfList.append(dfCurrent.copy())
-    
-    return dfList
-
-
-
-def fixDataFrame(df: pd.DataFrame) -> pd.DataFrame:
-    df['Datum von'] = pd.to_datetime(df['Jahr'].astype(str) + '-' +
-                                      df['Monat'].astype(str).str.zfill(2) + '-' +
-                                      df['Tag'].astype(str).str.zfill(2) + ' ' +
-                                      df['Uhrzeit'].astype(str), format='%Y-%m-%d %H:%M:%S')
-
-    df['Datum bis'] = df['Datum von'] + pd.Timedelta(minutes=15)
-    
-    df = df.drop(columns=['Jahr', 'Monat', 'Tag', 'Uhrzeit', 'Monat Tag','Erneuerbar', 'Anteil Erneuerbar [%]','Total', 'Kernenergie'])
-    df = df[['Datum von', 'Datum bis','Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore','Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher', 'Braunkohle', 'Steinkohle', 'Erdgas','Sonstige Konventionelle']]
-    return df
-
-def fixDataFrame2(df: pd.DataFrame) -> pd.DataFrame:
-    df['Datum von'] = pd.to_datetime(df['Jahr'].astype(str) + '-' +
-                                      df['Monat'].astype(str).str.zfill(2) + '-' +
-                                      df['Tag'].astype(str).str.zfill(2) + ' ' +
-                                      df['Uhrzeit'].astype(str), format='%Y-%m-%d %H:%M:%S')
-
-    df['Datum bis'] = df['Datum von'] + pd.Timedelta(minutes=15)
-    df = df.drop(columns=['Jahr', 'Monat', 'Tag', 'Uhrzeit', 'Monat Tag', 'Residuallast', 'Pumpspeicher'])
-    df = df[['Datum von', 'Datum bis','Gesamt']]
-    return df
