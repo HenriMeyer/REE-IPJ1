@@ -4,33 +4,11 @@ import graphics
 import simulation
 import pandas as pd
 
-prognose = {
-    'Biomasse': 1340000.0, 
-    'Wasserkraft': 890000.0, 
-    'Wind Offshore': 1770000.0, 
-    'Wind Onshore': 1230000.0, 
-    'Photovoltaik': 950000.0, 
-    'Sonstige Erneuerbare': 1520000.0, 
-    'Kernenergie': 1080000.0, 
-    'Braunkohle': 670000.0, 
-    'Steinkohle': 1450000.0, 
-    'Erdgas': 880000.0, 
-    'Pumpspeicher': 1910000.0, 
-    'sonstige Konventionelle': 1110000.0
-}
 
 def main():
     # Read in data and save in df
-    # gen21 = data.read_SMARD("Realisierte_Erzeugung_202101010000_202201010000_Viertelstunde.csv")
-    # gen22 = data.read_SMARD("Realisierte_Erzeugung_202201010000_202301010000_Viertelstunde.csv")
-    gen23 = data.read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
-    # con21 = data.read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
-    # con22 = data.read_SMARD("Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv", False)
-    con23 = data.read_SMARD("Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv", False)
+    df = data.read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv", "Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv")
     simulationList = list()
-    # generation = [gen21, gen22, gen23]
-    # consumption = [con21, con22, con23]
-    # graphics.plotHeatmap(gen22, 'Wind Onshore', 'Monat', 'Uhrzeit', 'Heatmap % ')
     
     print("Simulationtool")
     print("'simulation' -> simulationtool")
@@ -44,23 +22,70 @@ def main():
                 break
             case "simulation":
                 print("Running the simulation...")
-                simulationList = simulation.simulation(gen23)
-                simulationListUsage = simulation.simulation_use(con23)
+                simulationList = simulation.simulation(df)
                 # 40000000 ==> standardinput strg + c
+            case "szenario":
+                simulationList = simulation.szenario(df)
             case "appendcsv":
-                    continue
-                    # code follows
+                continue
+                # code follows
             case "writeexcel":
                 print("Writing data to excel...")
                 data.writeExcel(simulationList, "Simulation")
+            case "visualize":
+                visualize(simulationList)
             case "help":
                 continue
                 # code follows
             case _:
                 print(f"\033[31mUnrecognized command: {user_input}\033[0m")
-    dfe = data.formatTime(simulationList[6])
-    dfv = data.formatTime(simulationListUsage[6])
-    plot_data(dfe, dfv, '2030')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#_______________________________________________________________________________________________________________________________________________________________
+#Visualizations
+def visualize(simulationList):
+
+    while True:
+        visualizationYear = input("Year to visualize: ")
+        if visualizationYear.isdigit():
+            for df in simulationList:
+                if int(visualizationYear) == int(df['Datum von'].dt.year.iloc[0]):
+                    dfv = df
+            break
+        else:
+            print(f"\033[31m{visualizationYear} is an invalid input!\033[0m")
+
+    dfv = data.addInformation(dfv)
+    graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
+    graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
+
 
 def plot_data(dfe, dfv, time):
     graphics.plot_pie_conv(dfe, 'Anteilige Erzeugung Konventioneller '+ time)
@@ -83,6 +108,7 @@ def histogramPercent(df, df2, time: str):
     graphics.plotHistogramPercent(df, 'Histogramm Abdeckung der Viertelstunden ' +time)
     graphics.plotHistogramPercent(vec, 'Anzahl der Viertelstunden mit prozentualer Abdeckung für ' +time)
     graphics.plotHeatmap(df, 'Anteil Erneuerbar [%]', 'Monat', 'Tag', 'Heatmap % ' + time)
+#_______________________________________________________________________________________________________________________________________________________________
 
 
 if __name__ == "__main__":
