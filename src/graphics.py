@@ -61,7 +61,7 @@ def plot_balk_all(df, filename: str):
     erzeuger_spalten = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 
         'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
-        'Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 
+        'Braunkohle', 'Steinkohle', 'Erdgas', 
         'Pumpspeicher', 'Sonstige Konventionelle'
     ]
     summen = df[erzeuger_spalten].sum()/(1e+6)
@@ -73,7 +73,7 @@ def plot_balk_all(df, filename: str):
 def plot_pie_prod(df, filename: str):
 
     erneuerbare_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
-    konventionelle_spalten = ['Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
+    konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     erneuerbare_summe = df[erneuerbare_spalten].sum().sum()/(1e+6)
     konventionelle_summe = df[konventionelle_spalten].sum().sum()/(1e+6)
     labels = [f'Erneuerbare Energie ({erneuerbare_summe:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
@@ -104,7 +104,7 @@ def plot_pie_rene(df, filename: str):
 #plots piechart of conventionals
 def plot_pie_conv(df, filename: str):
 
-    konventionelle_spalten = ['Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
+    konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     data = df[konventionelle_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(konventionelle_spalten, data)]
 
