@@ -16,7 +16,7 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     
     print(df)
     
-    path = "../data/" + filename + ".png"
+    path = "../Output/" + filename + ".png"
     heatmap_data = df.pivot_table(index = indexY, columns = indexX , values=colName, aggfunc=np.mean) # Leistungsmittelwerte!
 
     plt.figure(figsize=(20, 8))
@@ -30,7 +30,7 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     plt.show()  
 
 def plotHistogramPercent(df, filename: str):
-    path = "../data/" + filename + ".png"
+    path = "../Output/" + filename + ".png"
 
     # Histogram erstellen und die x-Achse als Prozentwerte anzeigen
     plt.figure(figsize=(10, 6))
