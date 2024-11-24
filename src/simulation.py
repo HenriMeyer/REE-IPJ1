@@ -34,9 +34,9 @@ def simulation(df: pd.DataFrame) -> list:
     return _simulation(df, generationYear)
 
 def szenario(df: pd.DataFrame) -> list:
-    user_input = input("Choose one: ")
+    user_input = input("Choose between 'high','mean' and 'low': ")
     match user_input.lower():
-            case "one":
+            case "high":
                 generation = {
                     'Biomasse': 37826000,
                     'Wasserkraft': 15000000,
@@ -49,7 +49,37 @@ def szenario(df: pd.DataFrame) -> list:
                     'Erdgas': 50143000,
                     'Pumpspeicher': 10647000,
                     'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 712000000
+                    'Verbrauch': 992000000
+                }
+            case "mean":
+                generation = {
+                    'Biomasse': 37826000,
+                    'Wasserkraft': 15000000,
+                    'Wind Offshore': 9955000,
+                    'Wind Onshore': 212150000,
+                    'Photovoltaik': 173500000,
+                    'Sonstige Erneuerbare': 1100000,
+                    'Braunkohle': 78000000,
+                    'Steinkohle': 40000000,
+                    'Erdgas': 50143000,
+                    'Pumpspeicher': 10647000,
+                    'Sonstige Konventionelle': 12000000,
+                    'Verbrauch': 852500000
+                }
+            case "low":
+                generation = {
+                    'Biomasse': 37826000,
+                    'Wasserkraft': 15000000,
+                    'Wind Offshore': 74000000,
+                    'Wind Onshore': 144000000,
+                    'Photovoltaik': 93000000,
+                    'Sonstige Erneuerbare': 1100000,
+                    'Braunkohle': 78000000,
+                    'Steinkohle': 40000000,
+                    'Erdgas': 50143000,
+                    'Pumpspeicher': 10647000,
+                    'Sonstige Konventionelle': 12000000,
+                    'Verbrauch': 713000000
                 }
     return _simulation(df, 2030)          
 
