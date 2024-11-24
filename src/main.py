@@ -3,19 +3,23 @@ import gui
 import graphics
 import simulation
 import pandas as pd
+import os
 
 
 def main():
+    # Clear screen
+    clearScreen()
+    
     # Read in data and save in df
     df = data.read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv", "Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv")
     simulationList = list()
     
-    print("Simulationtool")
-    print("'simulation' -> simulationtool")
+    print("\033[1mSimulationtool\033[0m")
+    print("Available commands:")
+    for cmd in commands():
+        print(f"- {cmd['command']}: {cmd['description']}")
     while True:
         user_input = input("Write your commands (or 'quit' to exit the program): ")
-        # print(commands) ==> print commands
-        # 'System.clear()' ==> something like that to clear cmd/powershell
         match user_input.lower():
             case "quit":
                 print("Program will be terminated.")
@@ -26,19 +30,38 @@ def main():
                 # 40000000 ==> standardinput strg + c
             case "szenario":
                 simulationList = simulation.szenario(df)
-            case "appendcsv":
-                continue
-                # code follows
             case "writeexcel":
                 print("Writing data to excel...")
                 data.writeExcel(simulationList, "Simulation")
             case "visualize":
                 visualize(simulationList)
-            case "help":
+            case "appendcsv":
                 continue
                 # code follows
+            case "help":
+                print("Available commands:")
+                for cmd in commands():
+                    print(f"- {cmd['command']}: {cmd['description']}")
             case _:
                 print(f"\033[31mUnrecognized command: {user_input}\033[0m")
+
+def commands() -> list:
+    commands = [
+        {"command": "quit", "description": "Terminates the program."},
+        {"command": "simulation", "description": "Runs a simulation using the given data."},
+        {"command": "szenario", "description": "Runs a scenario analysis on the given data."},
+        {"command": "writeexcel", "description": "Writes the simulation data to an Excel file."},
+        {"command": "visualize", "description": "Visualizes the simulation results."},
+        {"command": "appendcsv", "description": "Appends data to a CSV file."},
+        {"command": "help", "description": "Shows this list of commands."}
+    ]
+    return commands
+
+def clearScreen():
+    if os.name == 'nt':  # Windows (cmd oder PowerShell)
+        os.system('cls')
+    else:  # Unix/Linux/MacOS
+        os.system('clear')
 
 
 
