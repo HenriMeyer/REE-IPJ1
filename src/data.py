@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 
 # Get data and input is filename of the source, don't forget '.csv'
@@ -101,15 +102,6 @@ def sumColumn(df, columnName: str) -> np.float64:
 
 # Generation
 # Add further information
-def addDataInformation(df) -> pd.DataFrame:
-    df['Erneuerbar'] = df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)
-    df['Total'] = df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)
-    return df
-
-def addPercantageRenewable(df):
-    df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher']].sum(axis=1)/df.loc[:,'Biomasse':'Sonstige Konventionelle'].sum(axis=1)*100).round(2)
-    return df
-
 def addPercentageRenewableLast(df):
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare']].sum(axis=1)/df['Verbrauch']*100).round(2)
     return df
@@ -131,65 +123,25 @@ def countPercentageRenewableExclude(df) -> list:
     return vector.tolist()
 
 # Append to CSV
-def appendYearlyCSV(dfList: list, filename: str):
-    # Kombiniere alle DataFrames in der Liste zu einem einzigen DataFrame
-    combined_df = pd.concat(dfList, ignore_index=True)
-
-    # Sicherstellen, dass die Spalte 'Jahr' numerisch ist
-    combined_df['Jahr'] = pd.to_numeric(combined_df['Jahr'], errors='coerce', downcast='integer')
-
-    # Liste aller numerischen Spalten, die summiert werden sollen
-    numeric_columns_to_sum = combined_df.select_dtypes(include='number').columns.tolist()
-
-    # Sicherstellen, dass 'Jahr' in den Spalten enthalten ist (sollte an erster Stelle stehen)
-    if 'Jahr' not in numeric_columns_to_sum:
-        numeric_columns_to_sum.insert(0, 'Jahr')
-
-    # Header-Zeile mit den Spaltennamen
-    header = ['Jahr'] + [col for col in numeric_columns_to_sum if col != 'Jahr']
-
-    # Dateiname mit dem Jahrbereich aus dem kombinierten DataFrame erstellen
-    csvFilename = "../Output/" + filename + "_" + str(combined_df['Jahr'].min()) + "_" + str(combined_df['Jahr'].max()) + ".csv"
-
-    # Überschreiben oder Neu-Erstellen der Datei mit der Header-Zeile
-    with open(csvFilename, 'w', encoding='utf-8') as f:
-        f.write(';'.join(header) + '\n')  # Header schreiben
-
-    # Iteriere durch die eindeutigen Jahre im kombinierten DataFrame
-    unique_years = sorted(combined_df['Jahr'].dropna().unique())  # Eindeutige, sortierte Jahre
-    for year in unique_years:
-        yearly_data = combined_df[combined_df['Jahr'] == year]  # Filter Daten für das Jahr
-
-        # Berechne die Summen der numerischen Spalten
-        sum_row = [year]  # Beginne mit dem Jahr
-        for col in numeric_columns_to_sum:
-            if col != 'Jahr':
-                sum_value = yearly_data[col].sum()  # Summe der Spalte
-                sum_row.append(str(round(sum_value, 2)).replace('.', ','))  # Dezimaltrenner ersetzen (Excel-konform)
-
-        # Füge die Zeile in die CSV-Datei ein
-        with open(csvFilename, 'a', encoding='utf-8') as f:
-            f.write(';'.join(map(str, sum_row)) + '\n')
-
-    print(f"{csvFilename} has been created.")
-
+def appendCSV(dfList: list) -> None:
+    folder = "../Output/CSV/Simulation"
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for df in dfList:
+            csvFilename = folder + str(df['Datum von'].dt.year.iloc[0]) + ".csv"
+            futures.append(executor.submit(df.to_csv,csvFilename, index=False, sep=";"))
+        for future in futures:
+            future.result()
+    print(f"CSV-files have been created succesfully ('{folder}')")  
     
 # Write simulation to excel
-def writeExcel(dfList: pd.DataFrame, filename: str) -> None:
-    excelFilename = "../Output/" + filename + ".xlsx"
-
-    # Schreiben in die Excel-Datei
+def writeExcel(dfList: pd.DataFrame) -> None:
+    excelFilename = "../Output/Excel/Simulation.xlsx"
     with pd.ExcelWriter(excelFilename, engine="openpyxl") as writer:
         for df in dfList:
             df.to_excel(writer, sheet_name=str(df['Datum von'].dt.year.iloc[0]), index=False, header=True)
-
     print(f"Die Excel-Datei '{excelFilename}' wurde erfolgreich erstellt.")
 
 
-
 # For Testing
-if __name__ == "__main__":
-    df = read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv")
-    # df = read_SMARD("Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv", False)
-    print(df)
-    # print(sumColumn(df,"Photovoltaik"))
+# if __name__ == "__main__":
