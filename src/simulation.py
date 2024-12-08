@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
 generation = {
@@ -31,7 +32,7 @@ def ownData(df: pd.DataFrame) -> list:
                 break
             except ValueError:
                 print("\033[31mInvalid input! Please enter a numeric value.\033[0m")
-    return simulation(df, generationYear)
+    return simulation(df, generationYear, generation)
 
 def szenario(df: pd.DataFrame) -> list:
     userInput = input("Choose between 'best','mean' and 'worst': ")
@@ -81,22 +82,22 @@ def szenario(df: pd.DataFrame) -> list:
                     'Sonstige Konventionelle': 12000000,
                     'Verbrauch': 775000000
                 }
-    return simulation(df, 2030)
+    return simulation(df, 2030, generation)
 
-def simulation(df: pd.DataFrame, generationYear: int) -> list:
+def simulation(df: pd.DataFrame, generationYear: int, generation) -> list:
     startYear = int(df['Datum von'].dt.year.iloc[0])
     dfList = []
     print("Running the simulation...")
     with ThreadPoolExecutor() as executor:
         futures = []
         for currentYear in range(startYear + 1, int(generationYear) + 1):
-            futures.append(executor.submit(calculationSimulation, df.copy(), currentYear, generationYear, startYear))
+            futures.append(executor.submit(calculationSimulation, df.copy(), currentYear, generationYear, startYear, generation))
         for future in futures:
             dfList.append(future.result())
     
     return dfList
 
-def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, startYear: int) -> pd.DataFrame:
+def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, startYear: int, generation) -> pd.DataFrame:
     dfCurrent = dfOriginal.copy()
     # Replace years
     dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
@@ -110,4 +111,31 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
             dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
         else:
             print(column + " wasn't simulated.")
-    return dfCurrent.copy()
+    dfCurrent = storage_sim(dfCurrent.copy())
+    return dfCurrent
+
+def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
+    df['Speicher'] = 0.0
+    df['Speicher Produktion'] = 0.0
+
+    erneuerbare_summe = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
+    df['Überschuss'] = erneuerbare_summe - df['Verbrauch']
+    
+    # Initialisiere Speicherstand
+    speicherstand = 0.0
+    
+    for i in df.index:
+        # Berechne Speicherzuwachs nur bei Überschuss
+        speicherzuwachs = max(df.at[i, 'Überschuss'], 0) * 0.8
+        speicherstand += speicherzuwachs
+        
+        # Bedarf decken, falls Speicher verfügbar und Bedarf vorhanden ist
+        bedarf = max(-df.at[i, 'Überschuss'], 0)
+        deckung = min(speicherstand, bedarf)
+        speicherstand -= deckung
+        
+        # Werte aktualisieren
+        df.at[i, 'Speicher'] = speicherstand
+        df.at[i, 'Speicher Produktion'] = deckung
+
+    return df
