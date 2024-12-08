@@ -1,4 +1,5 @@
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
 
 generation = {
     'Biomasse': 40000000,
@@ -14,9 +15,8 @@ generation = {
     'Sonstige Konventionelle': 40000000,
     'Verbrauch': 40000000
 }
-generationYear = 2030
 
-def simulation(df: pd.DataFrame) -> list:
+def ownData(df: pd.DataFrame) -> list:
     startYear = int(df['Datum von'].dt.year.iloc[0])
     while True:
         generationYear = input("Year for forecast: ")
@@ -31,17 +31,17 @@ def simulation(df: pd.DataFrame) -> list:
                 break
             except ValueError:
                 print("\033[31mInvalid input! Please enter a numeric value.\033[0m")
-    return _simulation(df, generationYear)
+    return simulation(df, generationYear)
 
 def szenario(df: pd.DataFrame) -> list:
-    user_input = input("Choose between 'high','mean' and 'low': ")
-    match user_input.lower():
-            case "high":
+    userInput = input("Choose between 'best','mean' and 'worst': ")
+    match userInput.lower():
+            case "best":
                 generation = {
                     'Biomasse': 37826000,
                     'Wasserkraft': 15000000,
-                    'Wind Offshore': 114000000,
-                    'Wind Onshore': 312000000,
+                    'Wind Offshore': 93100000,
+                    'Wind Onshore': 282000000,
                     'Photovoltaik': 210000000,
                     'Sonstige Erneuerbare': 1100000,
                     'Braunkohle': 78000000,
@@ -49,24 +49,24 @@ def szenario(df: pd.DataFrame) -> list:
                     'Erdgas': 50143000,
                     'Pumpspeicher': 10647000,
                     'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 992000000
+                    'Verbrauch': 587000000
                 }
             case "mean":
                 generation = {
                     'Biomasse': 37826000,
                     'Wasserkraft': 15000000,
-                    'Wind Offshore': 9955000,
-                    'Wind Onshore': 212150000,
-                    'Photovoltaik': 173500000,
+                    'Wind Offshore': 94620000,
+                    'Wind Onshore': 228060000,
+                    'Photovoltaik': 157380000,
                     'Sonstige Erneuerbare': 1100000,
                     'Braunkohle': 78000000,
                     'Steinkohle': 40000000,
                     'Erdgas': 50143000,
                     'Pumpspeicher': 10647000,
                     'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 852500000
+                    'Verbrauch': 685000000
                 }
-            case "low":
+            case "worst":
                 generation = {
                     'Biomasse': 37826000,
                     'Wasserkraft': 15000000,
@@ -79,27 +79,35 @@ def szenario(df: pd.DataFrame) -> list:
                     'Erdgas': 50143000,
                     'Pumpspeicher': 10647000,
                     'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 713000000
+                    'Verbrauch': 775000000
                 }
-    return _simulation(df, 2030)          
+    return simulation(df, 2030)
 
-def _simulation(df: pd.DataFrame, generationYear: int) -> list:
+def simulation(df: pd.DataFrame, generationYear: int) -> list:
     startYear = int(df['Datum von'].dt.year.iloc[0])
     dfList = []
-    dfCurrent = df.copy()
-    for currentYear in range(startYear + 1, int(generationYear) + 1):
-        # Replace years
-        dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
-        dfCurrent['Datum bis'] = dfCurrent['Datum bis'].map(lambda x: x.replace(year=currentYear))
-        # Replace last year
-        dfCurrent.iloc[-1, dfCurrent.columns.get_loc('Datum bis')] = dfCurrent.iloc[-1]['Datum bis'].replace(year=currentYear + 1)
-        for column in df.columns:
-            if column in ['Datum von', 'Datum bis']:
-                continue
-            if column in generation:
-                dfCurrent[column] = round(df[column] * (((generation[column] / df[column].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
-            else:   
-                print(column + " wasn't simulated.")
-        dfList.append(dfCurrent.copy())
+    print("Running the simulation...")
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for currentYear in range(startYear + 1, int(generationYear) + 1):
+            futures.append(executor.submit(calculationSimulation, df.copy(), currentYear, generationYear, startYear))
+        for future in futures:
+            dfList.append(future.result())
     
     return dfList
+
+def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, startYear: int) -> pd.DataFrame:
+    dfCurrent = dfOriginal.copy()
+    # Replace years
+    dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
+    dfCurrent['Datum bis'] = dfCurrent['Datum bis'].map(lambda x: x.replace(year=currentYear))
+    # Replace last year
+    dfCurrent.iloc[-1, dfCurrent.columns.get_loc('Datum bis')] = dfCurrent.iloc[-1]['Datum bis'].replace(year=currentYear + 1)
+    for column in dfOriginal.columns:
+        if column in ['Datum von', 'Datum bis']:
+            continue
+        if column in generation:
+            dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
+        else:
+            print(column + " wasn't simulated.")
+    return dfCurrent.copy()

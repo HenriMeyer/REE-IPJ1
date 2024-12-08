@@ -25,19 +25,17 @@ def main():
                 print("Program will be terminated.")
                 break
             case "simulation":
-                print("Running the simulation...")
-                simulationList = simulation.simulation(df)
+                simulationList = simulation.ownData(df)
                 # 40000000 ==> standardinput strg + c
             case "szenario":
                 simulationList = simulation.szenario(df)
-            case "writeexcel":
+            case "excel":
                 print("Writing data to excel...")
-                data.writeExcel(simulationList, "Simulation")
+                data.writeExcel(simulationList)
             case "visualize":
                 visualize(simulationList)
-            case "appendcsv":
-                continue
-                # code follows
+            case "csv":
+                data.appendCSV(simulationList)
             case "help":
                 print("Available commands:")
                 for cmd in commands():
@@ -50,9 +48,9 @@ def commands() -> list:
         {"command": "quit", "description": "Terminates the program."},
         {"command": "simulation", "description": "Runs a simulation using the given data."},
         {"command": "szenario", "description": "Runs a scenario analysis on the given data."},
-        {"command": "writeexcel", "description": "Writes the simulation data to an Excel file."},
+        {"command": "excel", "description": "Writes the simulation data to an Excel file."},
         {"command": "visualize", "description": "Visualizes the simulation results."},
-        {"command": "appendcsv", "description": "Appends data to a CSV file."},
+        {"command": "csv", "description": "Appends data to a CSV file."},
         {"command": "help", "description": "Shows this list of commands."}
     ]
     return commands
