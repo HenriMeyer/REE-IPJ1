@@ -9,8 +9,6 @@ def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
     pathGen = "../data/" + filenameGen
     pathUse = "../data/" + filenameUse
     
-
-    # Try block
     try:
         # Read file
         dfGen = pd.read_csv(
