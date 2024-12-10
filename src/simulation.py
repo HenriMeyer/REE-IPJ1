@@ -1,13 +1,15 @@
 import pandas as pd
-import numpy as np
+import random
 from concurrent.futures import ThreadPoolExecutor
+
+START_YEAR = 2023
 
 generation = {
     'Biomasse': 40000000,
     'Wasserkraft': 40000000,
-    'Wind Offshore': 40000000,
-    'Wind Onshore': 40000000,
-    'Photovoltaik': 40000000,
+    'Wind Offshore': 40000000, # kommt raus
+    'Wind Onshore': 40000000, # kommt raus
+    'Photovoltaik': 40000000, # kommt raus
     'Sonstige Erneuerbare': 40000000,
     'Braunkohle': 40000000,
     'Steinkohle': 40000000,
@@ -17,14 +19,13 @@ generation = {
     'Verbrauch': 40000000
 }
 
-def ownData(df: pd.DataFrame) -> list:
-    startYear = int(df['Datum von'].dt.year.iloc[0])
+def ownData(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     while True:
         generationYear = input("Year for forecast: ")
-        if generationYear.isdigit() and int(generationYear) > startYear:
+        if generationYear.isdigit() and int(generationYear) > START_YEAR:
                 break
         else:
-            print(f"\033[31m{generationYear} is an invalid input, it has to be bigger than {startYear} and a digit!\033[0m")
+            print(f"\033[31m{generationYear} is an invalid input, it has to be bigger than {START_YEAR} and a digit!\033[0m")
     for key in generation:
         while True:
             try:
@@ -32,10 +33,16 @@ def ownData(df: pd.DataFrame) -> list:
                 break
             except ValueError:
                 print("\033[31mInvalid input! Please enter a numeric value.\033[0m")
-    return simulation(df, generationYear, generation)
+    return simulation(dfList, generationYear)
 
-def szenario(df: pd.DataFrame) -> list:
-    userInput = input("Choose between 'best','mean' and 'worst': ")
+def szenario(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    while True:
+        userInput = input("Choose between 'best','mean' and 'worst': ")
+        if userInput not in ['best', 'mean', 'worst']:
+            print("\033[31mWrong input!\033[0m")
+        else:
+            break
+        global generation
     match userInput.lower():
             case "best":
                 generation = {
@@ -82,60 +89,57 @@ def szenario(df: pd.DataFrame) -> list:
                     'Sonstige Konventionelle': 12000000,
                     'Verbrauch': 775000000
                 }
-    return simulation(df, 2030, generation)
+    return simulation(dfList, 2030)
 
-def simulation(df: pd.DataFrame, generationYear: int, generation) -> list:
-    startYear = int(df['Datum von'].dt.year.iloc[0])
-    dfList = []
+def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[pd.DataFrame]:
+    dfList = list()
+    # Indices for list
+    leapYear = [1,5]
+    commonYear = [0,2,3,4,6,7,8]
+    
     print("Running the simulation...")
     with ThreadPoolExecutor() as executor:
         futures = []
-        for currentYear in range(startYear + 1, int(generationYear) + 1):
-            futures.append(executor.submit(calculationSimulation, df.copy(), currentYear, generationYear, startYear, generation))
+        for currentYear in range(START_YEAR + 1, generationYear + 1):
+            # Check if currentYear is a leap year
+            if (currentYear % 4 == 0 and (currentYear % 100 != 0 or currentYear % 400 == 0)):
+                futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(leapYear)].copy(), currentYear, generationYear))
+            else:
+                futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(commonYear)].copy(), currentYear, generationYear))
         for future in futures:
             dfList.append(future.result())
-    
-    return dfList
+            
+    return insertionSort(dfList)
 
-def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, startYear: int, generation) -> pd.DataFrame:
+def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int) -> pd.DataFrame:
     dfCurrent = dfOriginal.copy()
     # Replace years
     dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
     dfCurrent['Datum bis'] = dfCurrent['Datum bis'].map(lambda x: x.replace(year=currentYear))
+
     # Replace last year
     dfCurrent.iloc[-1, dfCurrent.columns.get_loc('Datum bis')] = dfCurrent.iloc[-1]['Datum bis'].replace(year=currentYear + 1)
+    
     for column in dfOriginal.columns:
         if column in ['Datum von', 'Datum bis']:
             continue
         if column in generation:
-            dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - startYear)) * (currentYear - startYear) + 1), 2)
+            dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
             print(column + " wasn't simulated.")
-    dfCurrent = storage_sim(dfCurrent.copy())
-    return dfCurrent
 
-def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
-    df['Speicher'] = 0.0
-    df['Speicher Produktion'] = 0.0
+    return dfCurrent.copy()
 
-    erneuerbare_summe = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
-    df['Überschuss'] = erneuerbare_summe - df['Verbrauch']
-    
-    # Initialisiere Speicherstand
-    speicherstand = 0.0
-    
-    for i in df.index:
-        # Berechne Speicherzuwachs nur bei Überschuss
-        speicherzuwachs = max(df.at[i, 'Überschuss'], 0) * 0.8
-        speicherstand += speicherzuwachs
+# Inseriontionsort for right order of dfList
+def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    for i in range(1, len(dfList)):
+        currentDf = dfList[i]
+        currentYear = currentDf['Datum von'].iloc[0].year
+        j = i - 1
+        while j >= 0 and dfList[j]['Datum von'].iloc[0].year > currentYear:
+            dfList[j + 1] = dfList[j]  
+            j -= 1
         
-        # Bedarf decken, falls Speicher verfügbar und Bedarf vorhanden ist
-        bedarf = max(-df.at[i, 'Überschuss'], 0)
-        deckung = min(speicherstand, bedarf)
-        speicherstand -= deckung
-        
-        # Werte aktualisieren
-        df.at[i, 'Speicher'] = speicherstand
-        df.at[i, 'Speicher Produktion'] = deckung
+        dfList[j + 1] = currentDf
 
-    return df
+    return dfList

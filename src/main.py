@@ -4,17 +4,54 @@ import graphics
 import simulation
 import pandas as pd
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 
 def main():
     # Clear screen
     clearScreen()
+    # Filenamelists for energyuseage and energyconsumption
+    genList = ["Realisierte_Erzeugung_201501010000_201601010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_201601010000_201701010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_201701010000_201801010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_201801010000_201901010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_201901010000_202001010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_202001010000_202101010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_202101010000_202201010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_202201010000_202301010000_Viertelstunde.csv",
+               "Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv"
+                ]
+    useList = ["Realisierter_Stromverbrauch_201501010000_201601010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_201601010000_201701010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_201701010000_201801010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_201801010000_201901010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_201901010000_202001010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_202001010000_202101010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_202101010000_202201010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv",
+               "Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv"
+                ]
+    # Check if lists have the same lengths
+    try:
+        if len(genList) != len(useList):
+            raise ValueError("Sample lists don't have the same length.")
+    except ValueError as e:
+        print(f"Error: {e}")
     
-    # Read in data and save in df
-    df = data.read_SMARD("Realisierte_Erzeugung_202301010000_202401010000_Viertelstunde.csv", "Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv")
+    # Read file parallel
+    dfList = list()
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for i in range(len(genList)):
+            futures.append(executor.submit(data.read_SMARD, genList[i], useList[i]))
+        for future in futures:
+            dfList.append(future.result())
+            
+    # List for simulation
     simulationList = list()
     
-    print("\033[1mSimulationtool\033[0m")
+    # Menu
+    print("\033[1mSimulationtool (Start: 2023)\033[0m")
     print("Available commands:")
     for cmd in commands():
         print(f"- {cmd['command']}: {cmd['description']}")
@@ -25,10 +62,10 @@ def main():
                 print("Program will be terminated.")
                 break
             case "simulation":
-                simulationList = simulation.ownData(df)
+                simulationList = simulation.ownData(dfList)
                 # 40000000 ==> standardinput strg + c
             case "szenario":
-                simulationList = simulation.szenario(df)
+                simulationList = simulation.szenario(dfList)
             case "excel":
                 print("Writing data to excel...")
                 data.writeExcel(simulationList)
