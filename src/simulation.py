@@ -3,26 +3,22 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 
 START_YEAR = 2023
+COAL_EXIT = 2038
 
 generation = {
-    'Biomasse': 40000000,
-    'Wasserkraft': 40000000,
-    'Wind Offshore': 40000000,
-    'Wind Onshore': 40000000,
-    'Photovoltaik': 40000000,
-    'Sonstige Erneuerbare': 40000000,
-    'Braunkohle': 40000000,
+    'Biomasse': 37826000,
+    'Wasserkraft': 15000000,
+    'Wind Offshore': 94620000,
+    'Wind Onshore': 228060000,
+    'Photovoltaik': 157380000,
+    'Sonstige Erneuerbare': 1100000,
+    'Braunkohle': 78000000,
     'Steinkohle': 40000000,
-    'Erdgas': 40000000,
-    'Pumpspeicher': 40000000,
-    'Sonstige Konventionelle': 40000000,
-    'Verbrauch': 40000000
+    'Erdgas': 50143000,
+    'Pumpspeicher': 10647000,
+    'Sonstige Konventionelle': 12000000,
+    'Verbrauch': 685000000
 }
-
-# WICHTIG!!!!!!!!!!!!!!!!!
-#------------------------------------------------------------------------------------------
-# Kohle linearisiert nach unten bis Kohleausstieg
-#------------------------------------------------------------------------------------------
 
 # Installierte Leistungen in MW
 photovoltaik = {
@@ -174,7 +170,11 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         if column in ['Datum von', 'Datum bis']:
             continue
         if column in generation:
-            dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+            # For year 2023 coal
+            if column in ['Braunkohle','Steinkohle']:
+                dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+            else:
+                dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
             print(column + " wasn't simulated.")
 
