@@ -19,6 +19,45 @@ generation = {
     'Verbrauch': 40000000
 }
 
+#Installationswerte in MW
+installation = {
+    'Photovoltaik' : {
+        'worst' : 180000,
+        'average' : 215000,
+        'best' : 240000
+    },
+    'Wind Offshore' : {
+        'worst' : 8500,
+        'average' : 22000,
+        'best' : 30000
+    },
+    'Wind Onshore' : {
+        'worst' : 60000,
+        'average' : 75000,
+        'best' : 100000
+    }
+}
+
+#Globalstrahlung und Volllaststunde als "Zeit" der Nennleistung
+wheather = {
+    'Photovoltaik' : {
+        'worst' : 1036,
+        'average' : 1151.5,
+        'best' : 1266.6
+    },
+    'Wind Offshore' : {
+        'worst' : 4500,
+        'average' : 5000,
+        'best' : 6000
+    },
+    'Wind Onshore' : {
+        'worst' : 2700,
+        'average' : 3000,
+        'best' : 3300
+    }
+}
+
+
 def ownData(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     while True:
         generationYear = input("Year for forecast: ")
