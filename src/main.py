@@ -92,7 +92,7 @@ def commands() -> list:
     ]
     return commands
 
-def clearScreen():
+def clearScreen() -> None:
     if os.name == 'nt':  # Windows (cmd oder PowerShell)
         os.system('cls')
     else:  # Unix/Linux/MacOS
@@ -171,5 +171,3 @@ def histogramPercent(df, df2, time: str):
 
 if __name__ == "__main__":
     main()
-
-
