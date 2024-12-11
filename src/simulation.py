@@ -19,6 +19,45 @@ generation = {
     'Verbrauch': 40000000
 }
 
+#Installationswerte in MW
+installation = {
+    'Photovoltaik' : {
+        'worst' : 180000,
+        'average' : 215000,
+        'best' : 240000
+    },
+    'Wind Offshore' : {
+        'worst' : 8500,
+        'average' : 22000,
+        'best' : 30000
+    },
+    'Wind Onshore' : {
+        'worst' : 60000,
+        'average' : 75000,
+        'best' : 100000
+    }
+}
+
+#Globalstrahlung und Volllaststunde als "Zeit" der Nennleistung
+wheather = {
+    'Photovoltaik' : {
+        'worst' : 1036,
+        'average' : 1151.5,
+        'best' : 1266.6
+    },
+    'Wind Offshore' : {
+        'worst' : 4500,
+        'average' : 5000,
+        'best' : 6000
+    },
+    'Wind Onshore' : {
+        'worst' : 2700,
+        'average' : 3000,
+        'best' : 3300
+    }
+}
+
+
 def ownData(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     while True:
         generationYear = input("Year for forecast: ")
@@ -128,7 +167,8 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         else:
             print(column + " wasn't simulated.")
 
-    return dfCurrent.copy()
+    
+    return storage_sim(dfCurrent.copy())
 
 # Inseriontionsort for right order of dfList
 def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
@@ -143,3 +183,43 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
         dfList[j + 1] = currentDf
 
     return dfList
+
+def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
+
+    ren_sum = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
+    df['Überschuss'] = ren_sum - df['Verbrauch']
+
+    df['Speicher'] = 0.0
+    df['Speicher Produktion'] = 0.0
+    df['Ungenutzte Energie'] = 0.0
+
+    eff = 0.8
+    storage = 0.0
+    max_fill = 2000
+    max_un = 2000
+    cap = 1000000
+
+    speicher = []
+    speicher_produktion = []
+    ungenutzte_energie = []
+
+    for ueberschuss in df['Überschuss']:
+        speicherzuwachs = max(ueberschuss, 0) * eff
+        speicherzuwachs = min(speicherzuwachs, max_fill)
+        speicherzuwachs = min(speicherzuwachs, cap - storage)
+        storage += speicherzuwachs
+
+        bedarf = max(-ueberschuss, 0)
+        deckung = min(storage, bedarf, max_un)
+        storage -= deckung
+
+        ungenutzte_energie.append(max(ueberschuss - speicherzuwachs / eff, 0))
+        speicher_produktion.append(deckung)
+        speicher.append(storage)
+
+
+    df['Speicher'] = speicher
+    df['Speicher Produktion'] = speicher_produktion
+    df['Ungenutzte Energie'] = ungenutzte_energie
+
+    return df
