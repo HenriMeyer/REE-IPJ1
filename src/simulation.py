@@ -128,7 +128,8 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         else:
             print(column + " wasn't simulated.")
 
-    return dfCurrent.copy()
+    
+    return storage_sim(dfCurrent.copy())
 
 # Inseriontionsort for right order of dfList
 def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
@@ -143,3 +144,47 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
         dfList[j + 1] = currentDf
 
     return dfList
+
+def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
+
+# Berechnung des Überschusses aus erneuerbaren Energien
+    erneuerbare_summe = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
+    df['Überschuss'] = erneuerbare_summe - df['Verbrauch']
+
+    # Initialisiere neue Spalten
+    df['Speicher'] = 0.0
+    df['Speicher Produktion'] = 0.0
+    df['Ungenutzte Energie'] = 0.0
+
+    # Simulationsvariablen
+    ladeeffizienz = 0.8
+    speicherstand = 0.0
+    max_be = 2000
+    max_ent = 2000
+    kapazitaet = 1000000
+
+    # Vektorisierter Ansatz
+    speicher = []
+    speicher_produktion = []
+    ungenutzte_energie = []
+
+    for ueberschuss in df['Überschuss']:
+        speicherzuwachs = max(ueberschuss, 0) * ladeeffizienz
+        speicherzuwachs = min(speicherzuwachs, max_be)
+        speicherzuwachs = min(speicherzuwachs, kapazitaet - speicherstand)
+        speicherstand += speicherzuwachs
+
+        bedarf = max(-ueberschuss, 0)
+        deckung = min(speicherstand, bedarf, max_ent)
+        speicherstand -= deckung
+
+        ungenutzte_energie.append(max(ueberschuss - speicherzuwachs, 0))
+        speicher_produktion.append(deckung)
+        speicher.append(speicherstand)
+
+    # Ergebnisse in den DataFrame einfügen
+    df['Speicher'] = speicher
+    df['Speicher Produktion'] = speicher_produktion
+    df['Ungenutzte Energie'] = ungenutzte_energie
+
+    return df
