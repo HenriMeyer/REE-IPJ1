@@ -174,7 +174,7 @@ def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
         deckung = min(storage, bedarf, max_un)
         storage -= deckung
 
-        ungenutzte_energie.append(max(ueberschuss - speicherzuwachs * eff, 0))
+        ungenutzte_energie.append(max(ueberschuss - speicherzuwachs / eff, 0))
         speicher_produktion.append(deckung)
         speicher.append(storage)
 
