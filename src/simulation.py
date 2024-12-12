@@ -128,8 +128,6 @@ def szenario(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
             print("\033[31mError in szenario.\033[0m")
             
     generation['Photovoltaik']*=0.8 # loss factor := 0.8
-    generation['Wind Offshore']*=0.5 # c_p = 0.5
-    generation['Wind Onshore']*=0.5 # c_p = 0.5
     
     for key,value in generation.items():
         print(f"{key}:{value}")
