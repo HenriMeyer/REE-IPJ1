@@ -3,58 +3,66 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 
 START_YEAR = 2023
+COAL_EXIT = 2038
 
 generation = {
-    'Biomasse': 40000000,
-    'Wasserkraft': 40000000,
-    'Wind Offshore': 40000000, # kommt raus
-    'Wind Onshore': 40000000, # kommt raus
-    'Photovoltaik': 40000000, # kommt raus
-    'Sonstige Erneuerbare': 40000000,
-    'Braunkohle': 40000000,
+    'Biomasse': 37826000,
+    'Wasserkraft': 15000000,
+    'Wind Offshore': 94620000,
+    'Wind Onshore': 228060000,
+    'Photovoltaik': 157380000,
+    'Sonstige Erneuerbare': 1100000,
+    'Braunkohle': 78000000,
     'Steinkohle': 40000000,
-    'Erdgas': 40000000,
-    'Pumpspeicher': 40000000,
-    'Sonstige Konventionelle': 40000000,
-    'Verbrauch': 40000000
+    'Erdgas': 50143000,
+    'Pumpspeicher': 10647000,
+    'Sonstige Konventionelle': 12000000,
+    'Verbrauch': 685000000
 }
 
-#Installationswerte in MW
-installation = {
-    'Photovoltaik' : {
+# Installierte Leistungen in MW
+photovoltaik = {
+    'Installierte Leistung [MW]' : {
         'worst' : 180000,
-        'average' : 215000,
+        'mean' : 215000,
         'best' : 240000
     },
-    'Wind Offshore' : {
+    'Globalstrahlung [W/m^2]' : {
+        'worst' : 1036,
+        'mean' : 1151.5,
+        'best' : 1266.6
+    }
+}
+windOffshore = {
+    'Installierte Leistung [MW]' : {
         'worst' : 8500,
-        'average' : 22000,
+        'mean' : 22000,
         'best' : 30000
     },
-    'Wind Onshore' : {
-        'worst' : 60000,
-        'average' : 75000,
-        'best' : 100000
+    'Volllaststunden [h]' : {
+        'worst' : 4500,
+        'mean' : 5000,
+        'best' : 6000
     }
 }
 
-#Globalstrahlung und Volllaststunde als "Zeit" der Nennleistung
-wheather = {
-    'Photovoltaik' : {
-        'worst' : 1036,
-        'average' : 1151.5,
-        'best' : 1266.6
+windOnshore = {
+    'Installierte Leistung [MW]' : {
+        'worst' : 60000,
+        'mean' : 75000,
+        'best' : 100000
     },
-    'Wind Offshore' : {
-        'worst' : 4500,
-        'average' : 5000,
-        'best' : 6000
-    },
-    'Wind Onshore' : {
+    'Volllaststunden [h]' : {
         'worst' : 2700,
-        'average' : 3000,
+        'mean' : 3000,
         'best' : 3300
     }
+}
+
+consumption = {
+    'worst' : 775000000,
+    'mean' : 685000000,
+    'best' : 587000000
 }
 
 
@@ -75,60 +83,59 @@ def ownData(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     return simulation(dfList, generationYear)
 
 def szenario(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
-    while True:
-        userInput = input("Choose between 'best','mean' and 'worst': ")
-        if userInput not in ['best', 'mean', 'worst']:
-            print("\033[31mWrong input!\033[0m")
+    choices = {
+        'Photovoltaik': photovoltaik,
+        'Wind Offshore': windOffshore,
+        'Wind Onshore': windOnshore,
+        'Verbrauch': consumption
+    }
+    global generation
+    generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
+    
+    for category, subdict in choices.items():
+        if category != 'Verbrauch':
+            for key, scenarios in subdict.items():
+                print(f"Kategorie: {category}")
+                print(f"\tUnterkategorie: {key}")
+                for scenario, value in scenarios.items():
+                    print(f"\t\tSzenario: {scenario} -> {value}")
+                while True:
+                    userInput = input("Choose between 'best', 'mean' and 'worst': ")
+                    print()
+                    if userInput not in ['best', 'mean', 'worst']:
+                        print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
+                    else:
+                        break
+                if category in generation:
+                    generation[category] *= scenarios[userInput]
+                else:
+                    print("\033[31mError category wasn't found in generation dictonary.\033[0m")
+        elif category == 'Verbrauch':
+            print(f"Kategorie: {category}[MWh]")
+            for scenario, value in subdict.items():
+                print(f"\t\tSzenario: {scenario} -> {value}")
+            while True:
+                userInput = input("Choose between 'best', 'mean' and 'worst': ")
+                print()
+                
+                if userInput not in ['best', 'mean', 'worst']:
+                    print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
+                else:
+                    break
+            generation[category] *= subdict[userInput]
+                
         else:
-            break
-        global generation
-    match userInput.lower():
-            case "best":
-                generation = {
-                    'Biomasse': 37826000,
-                    'Wasserkraft': 15000000,
-                    'Wind Offshore': 93100000,
-                    'Wind Onshore': 282000000,
-                    'Photovoltaik': 210000000,
-                    'Sonstige Erneuerbare': 1100000,
-                    'Braunkohle': 78000000,
-                    'Steinkohle': 40000000,
-                    'Erdgas': 50143000,
-                    'Pumpspeicher': 10647000,
-                    'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 587000000
-                }
-            case "mean":
-                generation = {
-                    'Biomasse': 37826000,
-                    'Wasserkraft': 15000000,
-                    'Wind Offshore': 94620000,
-                    'Wind Onshore': 228060000,
-                    'Photovoltaik': 157380000,
-                    'Sonstige Erneuerbare': 1100000,
-                    'Braunkohle': 78000000,
-                    'Steinkohle': 40000000,
-                    'Erdgas': 50143000,
-                    'Pumpspeicher': 10647000,
-                    'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 685000000
-                }
-            case "worst":
-                generation = {
-                    'Biomasse': 37826000,
-                    'Wasserkraft': 15000000,
-                    'Wind Offshore': 74000000,
-                    'Wind Onshore': 144000000,
-                    'Photovoltaik': 93000000,
-                    'Sonstige Erneuerbare': 1100000,
-                    'Braunkohle': 78000000,
-                    'Steinkohle': 40000000,
-                    'Erdgas': 50143000,
-                    'Pumpspeicher': 10647000,
-                    'Sonstige Konventionelle': 12000000,
-                    'Verbrauch': 775000000
-                }
+            print("\033[31mError in szenario.\033[0m")
+            
+    generation['Photovoltaik']*=0.8 # loss factor := 0.8
+    generation['Wind Offshore']*=0.5 # c_p = 0.5
+    generation['Wind Onshore']*=0.5 # c_p = 0.5
+    
+    for key,value in generation.items():
+        print(f"{key}:{value}")
+    
     return simulation(dfList, 2030)
+
 
 def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[pd.DataFrame]:
     dfList = list()
@@ -163,7 +170,11 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         if column in ['Datum von', 'Datum bis']:
             continue
         if column in generation:
-            dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+            # For year 2023 coal
+            if column in ['Braunkohle','Steinkohle']:
+                dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+            else:
+                dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
             print(column + " wasn't simulated.")
 
