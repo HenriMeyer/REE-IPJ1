@@ -33,6 +33,7 @@ photovoltaik = {
         'best' : 1266.6
     }
 }
+
 windOffshore = {
     'Installierte Leistung [MW]' : {
         'worst' : 8500,
@@ -66,23 +67,42 @@ consumption = {
 }
 
 
-def ownData(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+def scenarioOverall(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     while True:
-        generationYear = input("Year for forecast: ")
-        if generationYear.isdigit() and int(generationYear) > START_YEAR:
-                break
+        userInput = input("What scenario do you want, you may choose between 'best', 'mean' and 'worst': ")
+        print()
+        if userInput not in ['best', 'mean', 'worst']:
+            print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
         else:
-            print(f"\033[31m{generationYear} is an invalid input, it has to be bigger than {START_YEAR} and a digit!\033[0m")
-    for key in generation:
-        while True:
-            try:
-                generation[key] = float(input(f"Value for {key}: "))
-                break
-            except ValueError:
-                print("\033[31mInvalid input! Please enter a numeric value.\033[0m")
-    return simulation(dfList, generationYear)
+            break
 
-def szenario(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    choices = {
+        'Photovoltaik': photovoltaik,
+        'Wind Offshore': windOffshore,
+        'Wind Onshore': windOnshore,
+        'Verbrauch': consumption
+    }
+    global generation
+    generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
+
+    for category, subdict in choices.items():
+        if category != 'Verbrauch':
+            for key, scenarios in subdict.items():
+                if userInput in scenarios:
+                    generation[category] *= scenarios[userInput]
+        elif category == 'Verbrauch':
+            if userInput in subdict:
+                generation[category] *= subdict[userInput]
+        else:
+            print("\033[31mError in szenario.\033[0m")
+
+    generation['Photovoltaik']*=0.8 # loss factor := 0.8
+        
+    return simulation(dfList, 2030)
+                
+        
+
+def scenarioEach(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     choices = {
         'Photovoltaik': photovoltaik,
         'Wind Offshore': windOffshore,
@@ -129,11 +149,7 @@ def szenario(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
             
     generation['Photovoltaik']*=0.8 # loss factor := 0.8
     
-    for key,value in generation.items():
-        print(f"{key}:{value}")
-    
     return simulation(dfList, 2030)
-
 
 def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[pd.DataFrame]:
     dfList = list()
