@@ -27,7 +27,7 @@ photovoltaik = {
         'mean' : 215000,
         'best' : 240000
     },
-    'Globalstrahlung [W/m^2]' : {
+    'Globalstrahlung [Wh/m^2]' : {
         'worst' : 1036,
         'mean' : 1151.5,
         'best' : 1266.6
@@ -66,6 +66,14 @@ consumption = {
     'best' : 587000000
 }
 
+load = {
+    'E-Auto' : {
+        'worst' : 8000000,
+        'mean' :11125000,
+        'average' : 21000000
+    }
+}
+
 
 def scenarioOverall(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     while True:
@@ -80,7 +88,8 @@ def scenarioOverall(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
         'Photovoltaik': photovoltaik,
         'Wind Offshore': windOffshore,
         'Wind Onshore': windOnshore,
-        'Verbrauch': consumption
+        'Verbrauch': consumption,
+        #'E-Auto' : load
     }
     global generation
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
@@ -277,6 +286,4 @@ def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFr
     df['Batteriespeicher Produktion'] = batt_prod
     df['Ungenutzte Energie'] = unused_en
 
-
     return df
-

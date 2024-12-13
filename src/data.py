@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 # Get data and input is filename of the source, don't forget '.csv'
-def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
+def read_SMARD(filenameGen, filenameUse, loadCount, loadProfile) -> pd.DataFrame:
     # Path -> move up a directory
     pathGen = "../data/" + filenameGen
     pathUse = "../data/" + filenameUse
@@ -77,7 +77,47 @@ def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
     ]
     df = df[new_order]
 
+    if len(df.index) == 35040:
+        df['Verbrauch'] -= loadCount['Elektroautos']*loadProfile['normal']['E-Auto']
+    else:
+        df['Verbrauch'] -= loadCount['Elektroautos']*loadProfile['leap']['E-Auto'] 
+
     return df
+
+def readLoadProfile():
+    # Gemeinsame Optionen für das Einlesen
+    read_options = {
+        'sep': ';',                  # Trennzeichen
+        'encoding': 'latin-1',       # Encoding
+        'decimal': ','              # Dezimaltrennzeichen (falls notwendig)
+    }
+
+    # Dateien einlesen
+    dfleap = pd.read_csv("..\data\loadprofile_leapyear.csv", **read_options)
+    dfnormal = pd.read_csv("..\data\loadprofile_normal.csv", **read_options)
+
+    for df in (dfleap, dfnormal):
+        # Entfernen von Zeitdaten
+        df.drop(columns=['Jahr_von', 'Zeit_von'], inplace=True)
+
+        # Zahlen als Float konvertieren, falls nötig
+        for column in ['Wärmepumpe[in kWh]', 'Elektroauto[Tagesnormiert]']:
+            df[column] = pd.to_numeric(df[column], errors='coerce')
+
+        # Berechnung durchführen
+        df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
+
+        # Spalten umbenennen
+        df.rename(
+            columns={
+                'Wärmepumpe[in kWh]': 'Wärmepumpe',
+                'Elektroauto[Tagesnormiert]': 'E-Auto'
+            },
+            inplace=True
+        )
+        print(df)
+
+    return {'leap': dfleap, 'normal': dfnormal}
 
 # General
 # Add further information
