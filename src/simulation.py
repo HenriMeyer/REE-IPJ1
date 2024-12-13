@@ -193,7 +193,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
             print(column + " wasn't simulated.")
 
     
-    return storage_sim(dfCurrent.copy())
+    return storage_sim(dfCurrent.copy(), 37000, 50000)
 
 # Inseriontionsort for right order of dfList
 def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
@@ -209,42 +209,74 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
     return dfList
 
-def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
+
+def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFrame:
+    df.drop(columns = ['Pumpspeicher'])
 
     ren_sum = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
     df['Überschuss'] = ren_sum - df['Verbrauch']
 
-    df['Speicher'] = 0.0
-    df['Speicher Produktion'] = 0.0
+    df['Pumpspeicher'] = 0.0
+    df['Batteriespeicher'] = 0.0
+    df['Pumpspeicher Produktion'] = 0.0
+    df['Batteriespeicher Produktion'] = 0.0
     df['Ungenutzte Energie'] = 0.0
 
-    eff = 0.8
-    storage = 0.0
-    max_fill = 2000
-    max_un = 2000
-    cap = 1000000
+    #Pumpspeicher-Parameter
+    pump_eff = 0.80
+    pump_stor = 0.0
+    pump_load = pump_cap/7
+    pump_unload = pump_cap/6
 
-    speicher = []
-    speicher_produktion = []
-    ungenutzte_energie = []
+    #Batteriespeicher-Parameter
+    batt_eff = 0.95
+    batt_stor = 0.0
+    batt_load = batt_cap/1.5
+    batt_unload = batt_cap/1.5
+
+    pump = []
+    batt = []
+    pump_prod = []
+    batt_prod = []
+    unused_en = []
 
     for ueberschuss in df['Überschuss']:
-        speicherzuwachs = max(ueberschuss, 0) * eff
-        speicherzuwachs = min(speicherzuwachs, max_fill)
-        speicherzuwachs = min(speicherzuwachs, cap - storage)
-        storage += speicherzuwachs
+        #Pumpspeicher
+        pump_plus = max(ueberschuss, 0) * pump_eff
+        pump_plus = min(pump_plus, pump_load)
+        pump_plus = min(pump_plus, pump_cap - pump_stor)
+        pump_stor += pump_plus
 
-        bedarf = max(-ueberschuss, 0)
-        deckung = min(storage, bedarf, max_un)
-        storage -= deckung
+        pump_need = max(-ueberschuss, 0)
+        pump_use = min(pump_stor, pump_need, pump_unload)
+        pump_stor -= pump_use
 
-        ungenutzte_energie.append(max(ueberschuss - speicherzuwachs / eff, 0))
-        speicher_produktion.append(deckung)
-        speicher.append(storage)
+        #Batteriespeicher
+        batt_plus = max(ueberschuss - pump_plus / pump_eff, 0) * batt_eff
+        batt_plus = min(batt_plus, batt_load)
+        batt_plus = min(batt_plus, batt_cap - batt_stor)
+        batt_stor += batt_plus
 
+        batt_need = max(-ueberschuss - pump_use, 0)
+        batt_use = min(batt_stor, batt_need, batt_unload)
+        batt_stor -= batt_use
 
-    df['Speicher'] = speicher
-    df['Speicher Produktion'] = speicher_produktion
-    df['Ungenutzte Energie'] = ungenutzte_energie
+        #Ungenutzte Energie
+        verbleibender_ueberschuss = max(ueberschuss - pump_plus / pump_eff - batt_plus / batt_eff, 0)
+        unused_en.append(verbleibender_ueberschuss)
+
+        #Speicherung der Werte
+        pump_prod.append(pump_use)
+        batt_prod.append(batt_use)
+        pump.append(pump_stor)
+        batt.append(batt_stor)
+
+    df['Pumpspeicher'] = pump
+    df['Batteriespeicher'] = batt
+    df['Pumpspeicher Produktion'] = pump_prod
+    df['Batteriespeicher Produktion'] = batt_prod
+    df['Ungenutzte Energie'] = unused_en
+
 
     return df
+
