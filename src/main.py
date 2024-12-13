@@ -62,10 +62,10 @@ def main():
                 print("Program will be terminated.")
                 break
             case "simulation":
-                simulationList = simulation.ownData(dfList)
+                simulationList = simulation.scenarioOverall(dfList)
                 # 40000000 ==> standardinput strg + c
             case "szenario":
-                simulationList = simulation.szenario(dfList)
+                simulationList = simulation.scenarioEach(dfList)
             case "excel":
                 print("Writing data to excel...")
                 data.writeExcel(simulationList)
