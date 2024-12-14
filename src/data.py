@@ -79,6 +79,42 @@ def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
 
     return df
 
+def readLoadProfile():
+    # Gemeinsame Optionen für das Einlesen
+    read_options = {
+        'sep': ';',                  # Trennzeichen
+        'encoding': 'latin-1',       # Encoding
+        'decimal': ','              # Dezimaltrennzeichen (falls notwendig)
+    }
+
+    # Dateien einlesen
+    dfleap = pd.read_csv("..\data\loadprofile_leapyear.csv", **read_options)
+    dfnormal = pd.read_csv("..\data\loadprofile_normal.csv", **read_options)
+
+    for df in (dfleap, dfnormal):
+        # Entfernen von Zeitdaten
+        df.drop(columns=['Jahr_von', 'Zeit_von'], inplace=True)
+
+        # Zahlen als Float konvertieren, falls nötig
+        for column in ['Waermepumpe[in kWh]', 'Elektroauto[Tagesnormiert]']:
+            df[column] = pd.to_numeric(df[column], errors='coerce')
+            df[column] /= 1000
+
+        # Berechnung durchführen
+        df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
+
+        # Spalten umbenennen
+        df.rename(
+            columns={
+                'Waermepumpe[in kWh]': 'Wärmepumpe',
+                'Elektroauto[Tagesnormiert]': 'E-Auto'
+            },
+            inplace=True
+        )
+        print(df)
+
+    return {'leap': dfleap, 'normal': dfnormal}
+
 # General
 # Add further information
 def formatTime(df) -> pd.DataFrame:

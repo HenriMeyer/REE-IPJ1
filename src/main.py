@@ -31,6 +31,7 @@ def main():
                "Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv",
                "Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv"
                 ]
+    
     # Check if lists have the same lengths
     try:
         if len(genList) != len(useList):
@@ -38,6 +39,8 @@ def main():
     except ValueError as e:
         print(f"Error: {e}")
     
+    loadProfile = data.readLoadProfile()
+
     # Read file parallel
     dfList = list()
     with ThreadPoolExecutor() as executor:
@@ -62,10 +65,9 @@ def main():
                 print("Program will be terminated.")
                 break
             case "simulation":
-                simulationList = simulation.scenarioOverall(dfList)
-                # 40000000 ==> standardinput strg + c
+                simulationList = simulation.scenarioOverall(dfList, loadProfile)
             case "szenario":
-                simulationList = simulation.scenarioEach(dfList)
+                simulationList = simulation.scenarioEach(dfList, loadProfile)
             case "excel":
                 print("Writing data to excel...")
                 data.writeExcel(simulationList)
@@ -143,6 +145,8 @@ def visualize(simulationList):
     dfv = data.addInformation(dfv)
     graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
     graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
+    graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
+    graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
 
 
 def plot_data(dfe, dfv, time):

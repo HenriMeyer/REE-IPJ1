@@ -17,6 +17,8 @@ generation = {
     'Erdgas': 50143000,
     'Pumpspeicher': 10647000,
     'Sonstige Konventionelle': 12000000,
+    'Wärmepumpe' : 1,
+    'E-Auto' : 1,
     'Verbrauch': 685000000
 }
 
@@ -27,7 +29,7 @@ photovoltaik = {
         'mean' : 215000,
         'best' : 240000
     },
-    'Globalstrahlung [W/m^2]' : {
+    'Globalstrahlung [Wh/m^2]' : {
         'worst' : 1036,
         'mean' : 1151.5,
         'best' : 1266.6
@@ -66,8 +68,23 @@ consumption = {
     'best' : 587000000
 }
 
+waermepumpe =  {
+    'Wärmepumpe' : {
+        'worst' : 3312371238,
+        'mean' : 20000,
+        'best' : 100000
+    }
+}
+eauto = {
+    'E-Auto' : {
+        'worst' : 8000000,
+        'mean' :11125000,
+        'average' : 21000000
+    }
+}
 
-def scenarioOverall(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+
+def scenarioOverall(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
     while True:
         userInput = input("What scenario do you want, you may choose between 'best', 'mean' and 'worst': ")
         print()
@@ -80,7 +97,9 @@ def scenarioOverall(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
         'Photovoltaik': photovoltaik,
         'Wind Offshore': windOffshore,
         'Wind Onshore': windOnshore,
-        'Verbrauch': consumption
+        'Verbrauch': consumption,
+        'Wärmepumpe' : waermepumpe,
+        'E-Auto' : eauto
     }
     global generation
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
@@ -98,16 +117,18 @@ def scenarioOverall(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
     generation['Photovoltaik']*=0.8 # loss factor := 0.8
         
-    return simulation(dfList, 2030)
+    return simulation(dfList, 2030, loadProfile)
                 
         
 
-def scenarioEach(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
     choices = {
         'Photovoltaik': photovoltaik,
         'Wind Offshore': windOffshore,
         'Wind Onshore': windOnshore,
-        'Verbrauch': consumption
+        'Verbrauch': consumption,
+        'Wärmepumpe' : waermepumpe,
+        'E-Auto' : eauto
     }
     global generation
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
@@ -149,9 +170,11 @@ def scenarioEach(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
             
     generation['Photovoltaik']*=0.8 # loss factor := 0.8
     
-    return simulation(dfList, 2030)
+    return simulation(dfList, 2030, loadProfile)
 
-def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[pd.DataFrame]:
+
+
+def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
     dfList = list()
     # Indices for list
     leapYear = [1,5]
@@ -163,9 +186,9 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[
         for currentYear in range(START_YEAR + 1, generationYear + 1):
             # Check if currentYear is a leap year
             if (currentYear % 4 == 0 and (currentYear % 100 != 0 or currentYear % 400 == 0)):
-                futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(leapYear)].copy(), currentYear, generationYear))
+                futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(leapYear)].copy(), currentYear, generationYear, loadProfile['leap']))
             else:
-                futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(commonYear)].copy(), currentYear, generationYear))
+                futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(commonYear)].copy(), currentYear, generationYear, loadProfile['normal']))
         for future in futures:
             dfList.append(future.result())
     
@@ -179,7 +202,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[
 
     return insertionSort(dfList)
 
-def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int) -> pd.DataFrame:
+def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, loadProfile: pd.DataFrame) -> pd.DataFrame:
     dfCurrent = dfOriginal.copy()
     # Replace years
     dfCurrent['Datum von'] = dfCurrent['Datum von'].map(lambda x: x.replace(year=currentYear))
@@ -188,13 +211,18 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
     # Replace last year
     dfCurrent.iloc[-1, dfCurrent.columns.get_loc('Datum bis')] = dfCurrent.iloc[-1]['Datum bis'].replace(year=currentYear + 1)
     
-    for column in dfOriginal.columns:
+    dfOriginal['E-Auto'] = 0
+    dfOriginal['Wärmepumpe'] = 0
+
+    for column in (dfOriginal.columns):
         if column in ['Datum von', 'Datum bis']:
             continue
         if column in generation:
             # For year 2023 coal
             if column in ['Braunkohle','Steinkohle']:
                 dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+            elif column in ['E-Auto', 'Wärmepumpe']:
+                dfCurrent[column] = round((loadProfile[column]*generation[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + 1),2)
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
@@ -292,10 +320,10 @@ def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFr
         unused_en.append(verbleibender_ueberschuss)
 
         #Speicherung der Werte
-        pump_prod.append(pump_use)
-        batt_prod.append(batt_use)
-        pump.append(pump_stor)
-        batt.append(batt_stor)
+        pump_prod.append(round(pump_use, 2))
+        batt_prod.append(round(batt_use, 2))
+        pump.append(round(pump_stor, 2))
+        batt.append(round(batt_stor, 2))
 
     df['Pumpspeicher'] = pump
     df['Batteriespeicher'] = batt
@@ -303,6 +331,4 @@ def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFr
     df['Batteriespeicher Produktion'] = batt_prod
     df['Ungenutzte Energie'] = unused_en
 
-
     return df
-
