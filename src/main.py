@@ -31,35 +31,7 @@ def main():
                "Realisierter_Stromverbrauch_202201010000_202301010000_Viertelstunde.csv",
                "Realisierter_Stromverbrauch_202301010000_202401010000_Viertelstunde.csv"
                 ]
-    useSimList = [
-        {
-            'Elektroautos' : 18948
-        },
-        {
-            'Elektroautos' : 25502
-        },
-        {
-            'Elektroautos' : 34022
-        },
-        {
-            'Elektroautos' : 53861
-        },
-        {
-            'Elektroautos' : 83175
-        },
-        {
-            'Elektroautos' : 136137
-        },
-        {
-            'Elektroautos' : 309038
-        },
-        {
-            'Elektroautos' : 618460
-        },
-        {
-            'Elektroautos' : 1013009
-        },
-    ]
+    
     # Check if lists have the same lengths
     try:
         if len(genList) != len(useList):
@@ -74,7 +46,7 @@ def main():
     with ThreadPoolExecutor() as executor:
         futures = []
         for i in range(len(genList)):
-            futures.append(executor.submit(data.read_SMARD, genList[i], useList[i], useSimList[i], loadProfile))
+            futures.append(executor.submit(data.read_SMARD, genList[i], useList[i]))
         for future in futures:
             dfList.append(future.result())
             
@@ -93,10 +65,9 @@ def main():
                 print("Program will be terminated.")
                 break
             case "simulation":
-                simulationList = simulation.scenarioOverall(dfList)
-                # 40000000 ==> standardinput strg + c
+                simulationList = simulation.scenarioOverall(dfList, loadProfile)
             case "szenario":
-                simulationList = simulation.scenarioEach(dfList)
+                simulationList = simulation.scenarioEach(dfList, loadProfile)
             case "excel":
                 print("Writing data to excel...")
                 data.writeExcel(simulationList)
