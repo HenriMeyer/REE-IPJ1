@@ -111,7 +111,6 @@ def readLoadProfile():
             },
             inplace=True
         )
-        print(df)
 
     return {'leap': dfleap, 'normal': dfnormal}
 
@@ -126,7 +125,7 @@ def formatTime(df) -> pd.DataFrame:
     df['Monat Tag'] = df['Datum von'].dt.strftime('%m %d')
     
     # Remove the original date columns
-    df = df.drop(columns=['Datum von', 'Datum bis'])
+    #df = df.drop(columns=['Datum von', 'Datum bis'])
     return df
 
 # Sum of one column

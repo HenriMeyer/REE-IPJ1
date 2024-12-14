@@ -145,3 +145,55 @@ def plotBalken(data, ylabel, xlabel, filename: str):
 
     plt.savefig(path, format='png', dpi=300)
     plt.show()
+
+def plot_energy_data_from_df(df):
+    
+    df['Datum von'] = pd.to_datetime(df['Datum von'])
+
+    # Gruppieren nach Woche und aufsummieren
+    weekly_df = df.groupby(df['Datum von'].dt.to_period('D')).agg({
+        'Verbrauch': 'sum',
+        'Biomasse': 'sum',
+        'Wasserkraft': 'sum',
+        'Wind Offshore': 'sum',
+        'Wind Onshore': 'sum',
+        'Photovoltaik': 'sum',
+        'Sonstige Erneuerbare': 'sum',
+        'Pumpspeicher Produktion': 'sum',
+        'Batteriespeicher Produktion': 'sum',
+        'Batteriespeicher': 'sum',
+        'Pumpspeicher': 'sum'
+    }).reset_index()
+
+    # Produktion und Speicher berechnen
+    weekly_df['Produktion'] = weekly_df[['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
+                                         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher Produktion',
+                                         'Batteriespeicher Produktion']].sum(axis=1)
+    weekly_df['Speicher'] = weekly_df[['Batteriespeicher', 'Pumpspeicher']].sum(axis=1)
+
+    # Daten extrahieren
+    time = weekly_df['Datum von'].dt.start_time
+    consumption = weekly_df['Verbrauch']
+    production = weekly_df['Produktion']
+    storage = weekly_df['Speicher']
+
+    # Diagramm erstellen
+    plt.figure(figsize=(12, 6))
+
+    # Verbrauch, Produktion und Speicher plotten
+    plt.plot(time, consumption, label='Stromverbrauch', color='blue', linewidth=2)
+    plt.plot(time, production, label='Stromproduktion', color='green', linewidth=2)
+    plt.plot(time, storage, label='Speicher', color='orange', linewidth=2)
+
+    # Titel und Achsenbeschriftungen
+    plt.title('Zeitlicher Verlauf von Stromverbrauch, Produktion und Speicher', fontsize=16)
+    plt.xlabel('Zeit', fontsize=14)
+    plt.ylabel('Energie (MWh)', fontsize=14)
+
+    # Gitter und Legende
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend(fontsize=12)
+
+    # Layout optimieren und anzeigen
+    plt.tight_layout()
+    plt.show()
