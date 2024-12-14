@@ -177,7 +177,15 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int) -> list[
                 futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(commonYear)].copy(), currentYear, generationYear))
         for future in futures:
             dfList.append(future.result())
-            
+    
+    dfList = linearBeginning(dfList)
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for df in dfList:
+            futures.append(executor.submit(storage_sim, df, 3700, 5000))
+        for future in futures:
+            dfList.append(future.result())
+
     return insertionSort(dfList)
 
 def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int) -> pd.DataFrame:
@@ -201,8 +209,26 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         else:
             print(column + " wasn't simulated.")
 
-    
-    return storage_sim(dfCurrent.copy(), 37000, 50000)
+    return dfCurrent.copy()
+
+def linearBeginning(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    maxIndex = 8 # Until which index shall it be linearised -> 2:00 o'clock
+    for i in range(1,len(dfList)):
+        dfCurrent = dfList[i]
+        dfBefore = dfList[i-1]
+        for column in dfCurrent.columns:
+            if column not in ["Datum von", "Datum bis", "Photovoltaik", "Verbrauch", "Pumpspeicher"]:
+                if column in dfBefore.columns:
+                    sumCurrentColumnBuffer = dfCurrent[column].sum()
+                    valueCurrent = dfCurrent.at[maxIndex - 1, column]
+                    valueBefore = dfBefore.iloc[-1][column]
+                    for i in range(0, maxIndex):
+                        dfCurrent.at[i, column] = valueBefore + (valueCurrent - valueBefore) * ((i + 1) / maxIndex)
+                    dfCurrent[column] = round(dfCurrent[column] * (dfCurrent[column].sum() / sumCurrentColumnBuffer), 2)
+                else:
+                    print(f"Column '{column}' not found in the previous DataFrame!")
+    return dfList.copy()
+            
 
 # Inseriontionsort for right order of dfList
 def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
@@ -216,7 +242,7 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
         
         dfList[j + 1] = currentDf
 
-    return dfList
+    return dfList.copy()
 
 
 def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFrame:
