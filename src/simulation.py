@@ -200,7 +200,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
     with ThreadPoolExecutor() as executor:
         futures = []
         for df in dfList:
-            futures.append(executor.submit(storage_sim, df, 3700, 5000))
+            futures.append(executor.submit(storage_sim, df))
         for future in futures:
             dfList.append(future.result())
 
@@ -270,7 +270,7 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     return dfList.copy()
 
 
-def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFrame:
+def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
     df.drop(columns = ['Pumpspeicher'])
 
     ren_sum = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
@@ -283,16 +283,18 @@ def storage_sim(df: pd.DataFrame, pump_cap: float, batt_cap: float) -> pd.DataFr
     df['Ungenutzte Energie'] = 0.0
 
     #Pumpspeicher-Parameter
+    pump_cap = 45000
     pump_eff = 0.80
     pump_stor = 0.0
-    pump_load = pump_cap/7
-    pump_unload = pump_cap/6
+    pump_load = 9700
+    pump_unload = 9700
 
     #Batteriespeicher-Parameter
+    batt_cap = 1924
     batt_eff = 0.95
     batt_stor = 0.0
-    batt_load = batt_cap/1.5
-    batt_unload = batt_cap/1.5
+    batt_load = 1500
+    batt_unload = 1500
 
     pump = []
     batt = []

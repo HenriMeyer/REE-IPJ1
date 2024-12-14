@@ -175,8 +175,8 @@ def plot_energy_data_from_df(df, filename):
         'Sonstige Erneuerbare': 'sum',
         'Pumpspeicher Produktion': 'sum',
         'Batteriespeicher Produktion': 'sum',
-        'Batteriespeicher': 'sum',
-        'Pumpspeicher': 'sum'
+        'Batteriespeicher': 'mean',
+        'Pumpspeicher': 'mean'
     }).reset_index()
 
     # Produktion und Speicher berechnen
