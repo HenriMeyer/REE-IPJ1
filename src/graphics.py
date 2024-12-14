@@ -31,7 +31,7 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
 
 def plotHistogramPercent(df, filename: str):
     path = "../Output/" + filename + ".png"
-
+    df['Anteil Erneuerbar [%]'] = df['Anteil Erneuerbar [%]'].clip(upper=115)
     # Histogram erstellen und die x-Achse als Prozentwerte anzeigen
     plt.figure(figsize=(10, 6))
     plt.hist(df['Anteil Erneuerbar [%]'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115], color='skyblue', edgecolor='black')
@@ -45,7 +45,7 @@ def plotHistogramPercent(df, filename: str):
 
 #plots collumnchart of renewable energyproducers
 def plot_balk_rene(df, filename: str):
-
+    path = "../Output/" + filename + ".png"
     erzeuger_spalten = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare'
@@ -53,11 +53,14 @@ def plot_balk_rene(df, filename: str):
     summen = df[erzeuger_spalten].sum()/(1e+6)
     ylabel = 'Energie in TWh'
     xlabel = 'Erzeuger'
+
     plotBalken(summen, ylabel, xlabel, filename)
+    plt.savefig(path, format='png', dpi=300)
 
 
 #plots columnchart of all energyproducers
 def plot_balk_all(df, filename: str):
+    path = "../Output/" + filename + ".png"
     erzeuger_spalten = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 
         'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
@@ -67,11 +70,13 @@ def plot_balk_all(df, filename: str):
     summen = df[erzeuger_spalten].sum()/(1e+6)
     ylabel = 'Energieerzeugung in TWh'
     xlabel = 'Erzeuger'
+
     plotBalken(summen, ylabel, xlabel, filename)
+    plt.savefig(path, format='png', dpi=300)
 
 #plots piechart of energyproduction
 def plot_pie_prod(df, filename: str):
-
+    path = "../Output/" + filename + ".png"
     erneuerbare_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
     konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     erneuerbare_summe = df[erneuerbare_spalten].sum().sum()/(1e+6)
@@ -79,11 +84,14 @@ def plot_pie_prod(df, filename: str):
     labels = [f'Erneuerbare Energie ({erneuerbare_summe:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
     data = [erneuerbare_summe, konventionelle_summe]
 
-    plot_pie(data, labels, filename)
+    plt.figure(figsize=(8, 8))
+    plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.tab20.colors)
+    plt.title(filename, fontsize=14)
+    plt.savefig(path, format='png', dpi=300)
 
 #plots piechart of energyusage
 def plot_pie_usage(df, df2, filename: str):
-    
+    path = "../Output/" + filename + ".png"
     erneuerbare_summe = (df['Gesamt'].sum().sum()-df['Residuallast'].sum().sum())/(1e+6)
     erneuerbare_summe_res = (df2['Biomasse'].sum().sum()+ df2['Wasserkraft'].sum().sum() + df2['Sonstige Erneuerbare'].sum().sum())/(1e+6)
     konventionelle_summe = df['Residuallast'].sum().sum()/(1e+6)- erneuerbare_summe_res
@@ -91,24 +99,30 @@ def plot_pie_usage(df, df2, filename: str):
     data = [erneuerbare_summe, erneuerbare_summe_res ,konventionelle_summe]
 
     plot_pie(data, labels, filename)
+    plt.savefig(path, format='png', dpi=300)
 
 #plots piechart of renewables
 def plot_pie_rene(df, filename: str):
-
+    path = "../Output/" + filename + ".png"
     erzeuger_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
     data = df[erzeuger_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(erzeuger_spalten, data)]
-
-    plot_pie(data, labels, filename)
+    plt.figure(figsize=(8, 8))
+    plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.tab20.colors)
+    plt.title(filename, fontsize=14)
+    plt.savefig(path, format='png', dpi=300)
 
 #plots piechart of conventionals
 def plot_pie_conv(df, filename: str):
-
+    path = "../Output/" + filename + ".png"
     konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     data = df[konventionelle_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(konventionelle_spalten, data)]
 
-    plot_pie(data, labels, filename)
+    plt.figure(figsize=(8, 8))
+    plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.tab20.colors)
+    plt.title(filename, fontsize=14)
+    plt.savefig(path, format='png', dpi=300)
 
 
 #visualization of piecharts
@@ -146,8 +160,8 @@ def plotBalken(data, ylabel, xlabel, filename: str):
     plt.savefig(path, format='png', dpi=300)
     plt.show()
 
-def plot_energy_data_from_df(df):
-    
+def plot_energy_data_from_df(df, filename):
+    path = "../Output/" + filename + ".png"
     df['Datum von'] = pd.to_datetime(df['Datum von'])
 
     # Gruppieren nach Woche und aufsummieren
@@ -193,7 +207,6 @@ def plot_energy_data_from_df(df):
     # Gitter und Legende
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend(fontsize=12)
-
+    plt.savefig(path, format='png', dpi=300)
     # Layout optimieren und anzeigen
-    plt.tight_layout()
     plt.show()

@@ -136,7 +136,8 @@ def sumColumn(df, columnName: str) -> np.float64:
 # Generation
 # Add further information
 def addPercentageRenewableLast(df):
-    df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare']].sum(axis=1)/df['Verbrauch']*100).round(2)
+    df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
+        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
     return df
 
 def addInformation(df) -> pd.DataFrame:

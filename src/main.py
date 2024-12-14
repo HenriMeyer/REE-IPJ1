@@ -142,12 +142,12 @@ def visualize(simulationList):
         else:
             print(f"\033[31m{visualizationYear} is an invalid input!\033[0m")
 
-    #dfv = data.addInformation(dfv)
-    #graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
-    #graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
-    #graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
+    dfv = data.addInformation(dfv)
+    graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
+    graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
+    graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
     #graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
-    graphics.plot_energy_data_from_df(dfv)
+    graphics.plot_energy_data_from_df(dfv, 'Stromverbrauch und Produktion '+ visualizationYear)
 
 
 def plot_data(dfe, dfv, time):
