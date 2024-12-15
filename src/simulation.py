@@ -79,12 +79,40 @@ eauto = {
     'E-Auto' : {
         'worst' : 6410000,
         'mean' : 9660000,
-        'average' : 19410000
+        'best' : 19410000
     }
 }
 start = {
     'Wärmepumpe' : 1600000,
-    'E-Auto' : 1590000
+    'E-Auto' : 1590000,
+}
+speicher = {
+    'Speicher' : {
+    'worst' : {
+        'pump_cap' : 45000,
+        'pump_load' : 9700,
+        'batt_cap' : 1924,
+        'batt_load' : 1500
+    },
+    'mean' : {
+        'pump_cap' : 70000,
+        'pump_load' : 15000,
+        'batt_cap' : 60000,
+        'batt_load' : 15000
+    },
+    'best' : {
+        'pump_cap' : 120000,
+        'pump_load' : 30000,
+        'batt_cap' : 100000,
+        'batt_load' : 25000
+    }
+    }
+}
+speicher_use = {
+    'pump_cap' : 1,
+    'pump_load' : 1,
+    'batt_cap' : 1,
+    'batt_load' : 1
 }
 
 
@@ -103,13 +131,21 @@ def scenarioOverall(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame])
         'Wind Onshore': windOnshore,
         'Verbrauch': consumption,
         'Wärmepumpe' : waermepumpe,
-        'E-Auto' : eauto
+        'E-Auto' : eauto,
+        'Speicher' : speicher
     }
     global generation
+    global speicher_use
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
 
     for category, subdict in choices.items():
-        if category != 'Verbrauch':
+        if category == 'Speicher':
+            speicher_use['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
+            speicher_use['pump_load'] = speicher['Speicher'][userInput]['pump_load']
+            speicher_use['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
+            speicher_use['batt_load'] = speicher['Speicher'][userInput]['batt_load']
+        
+        elif category != 'Verbrauch':
             for key, scenarios in subdict.items():
                 if userInput in scenarios:
                     generation[category] *= scenarios[userInput]
@@ -132,9 +168,11 @@ def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) ->
         'Wind Onshore': windOnshore,
         'Verbrauch': consumption,
         'Wärmepumpe' : waermepumpe,
-        'E-Auto' : eauto
+        'E-Auto' : eauto,
+        'Speicher' : speicher
     }
     global generation
+    global speicher_use
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
     
     for category, subdict in choices.items():
@@ -168,7 +206,20 @@ def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) ->
                 else:
                     break
             generation[category] *= subdict[userInput]
-                
+        elif category == 'Speicher':
+            print(f"Kategorie: {category}")
+            while True:
+                    userInput = input("Choose between 'best', 'mean' and 'worst': ")
+                    print()
+                    if userInput not in ['best', 'mean', 'worst']:
+                        print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
+                    else:
+                        speicher_use['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
+                        speicher_use['pump_load'] = speicher['Speicher'][userInput]['pump_load']
+                        speicher_use['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
+                        speicher_use['batt_load'] = speicher['Speicher'][userInput]['batt_load']
+                        break
+            
         else:
             print("\033[31mError in szenario.\033[0m")
             
@@ -200,7 +251,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
     with ThreadPoolExecutor() as executor:
         futures = []
         for df in dfList:
-            futures.append(executor.submit(storage_sim, df))
+            futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear))
         for future in futures:
             dfList.append(future.result())
 
@@ -270,7 +321,7 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     return dfList.copy()
 
 
-def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
+def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     df.drop(columns = ['Pumpspeicher'])
 
     ren_sum = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
@@ -283,18 +334,18 @@ def storage_sim(df: pd.DataFrame) -> pd.DataFrame:
     df['Ungenutzte Energie'] = 0.0
 
     #Pumpspeicher-Parameter
-    pump_cap = 45000
+    pump_cap = round((speicher_use['pump_cap']-speicher['Speicher']['worst']['pump_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['pump_cap']),2)
     pump_eff = 0.80
     pump_stor = 0.0
-    pump_load = 9700
-    pump_unload = 9700
+    pump_load = round((speicher_use['pump_load']-speicher['Speicher']['worst']['pump_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['pump_load']),2)
+    pump_unload = pump_load
 
     #Batteriespeicher-Parameter
-    batt_cap = 1924
+    batt_cap = round((speicher_use['batt_cap']-speicher['Speicher']['worst']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['batt_cap']),2)
     batt_eff = 0.95
     batt_stor = 0.0
-    batt_load = 1500
-    batt_unload = 1500
+    batt_load = round((speicher_use['batt_load']-speicher['Speicher']['worst']['batt_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['batt_load']),2)
+    batt_unload = pump_load
 
     pump = []
     batt = []
