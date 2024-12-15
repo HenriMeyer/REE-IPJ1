@@ -210,3 +210,49 @@ def plot_energy_data_from_df(df, filename):
     plt.savefig(path, format='png', dpi=300)
     # Layout optimieren und anzeigen
     plt.show()
+
+
+def aggregate_and_plot(dataframes: list[pd.DataFrame]):
+    column_to_sum = input("Welche Spalte soll summiert werden? Bitte Spaltennamen eingeben: ")
+    path = f"../Output/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
+    
+    sums = []
+    sums2 = []
+    percentages = []
+    years = []
+
+    for df in dataframes:
+        total_column = df[column_to_sum].sum().sum() / 1e6  # in TWh
+        total_consumption = df['Verbrauch'].sum().sum() / 1e6  # in TWh
+        
+        sums.append(total_column)
+        sums2.append(total_consumption)
+        percentages.append((total_column / total_consumption) * 100)  # Prozentualer Anteil
+        years.append(int(df['Datum von'].dt.year.iloc[0]))
+    
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+
+    # Erste Y-Achse für TWh-Werte
+    ax1.plot(years, sums, label=f'{column_to_sum} (TWh)', color='green', marker='o')
+    ax1.plot(years, sums2, label='Verbrauch (TWh)', color='blue', marker='o')
+    
+    ax1.set_xlabel('Jahr')
+    ax1.set_ylabel('Energie (TWh)')
+    ax1.set_xticks(years)
+    ax1.set_xticklabels(years, rotation=45)
+    
+    ax1.set_title(f'Erzeugung von "{column_to_sum}" nach Jahr im Vergleich zum Verbrauch')
+    ax1.legend(loc='upper left', fontsize=12)
+
+    # Zweite Y-Achse für den Prozentanteil
+    ax2 = ax1.twinx()
+    ax2.plot(years, percentages, label=f'Anteil {column_to_sum} am Verbrauch (%)', color='orange', marker='o', linestyle='--')
+    ax2.set_ylabel('Anteil (%)')
+    ax2.set_ylim(0, 100)
+
+    # Kombinierte Legende
+    ax2.legend(loc='upper right', fontsize=12)
+
+    plt.tight_layout()
+    plt.savefig(path, format='png', dpi=300)
+    plt.show()

@@ -176,7 +176,20 @@ def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) ->
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
     
     for category, subdict in choices.items():
-        if category != 'Verbrauch':
+        if category == 'Speicher':
+            print(f"Kategorie: {category}")
+            while True:
+                    userInput = input("Choose between 'best', 'mean' and 'worst': ")
+                    print()
+                    if userInput not in ['best', 'mean', 'worst']:
+                        print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
+                    else:
+                        speicher_use['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
+                        speicher_use['pump_load'] = speicher['Speicher'][userInput]['pump_load']
+                        speicher_use['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
+                        speicher_use['batt_load'] = speicher['Speicher'][userInput]['batt_load']
+                        break
+        elif category != 'Verbrauch':
             for key, scenarios in subdict.items():
                 print(f"Kategorie: {category}")
                 print(f"\tUnterkategorie: {key}")
@@ -206,20 +219,6 @@ def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) ->
                 else:
                     break
             generation[category] *= subdict[userInput]
-        elif category == 'Speicher':
-            print(f"Kategorie: {category}")
-            while True:
-                    userInput = input("Choose between 'best', 'mean' and 'worst': ")
-                    print()
-                    if userInput not in ['best', 'mean', 'worst']:
-                        print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
-                    else:
-                        speicher_use['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
-                        speicher_use['pump_load'] = speicher['Speicher'][userInput]['pump_load']
-                        speicher_use['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
-                        speicher_use['batt_load'] = speicher['Speicher'][userInput]['batt_load']
-                        break
-            
         else:
             print("\033[31mError in szenario.\033[0m")
             

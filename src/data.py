@@ -111,6 +111,7 @@ def readLoadProfile():
             },
             inplace=True
         )
+        df['Wärmepumpe'] = df['Wärmepumpe']/3*5
 
     return {'leap': dfleap, 'normal': dfnormal}
 
