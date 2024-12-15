@@ -25,9 +25,10 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     plt.title(filename)
     plt.xlabel(indexX)
     plt.ylabel(indexY)
+    plt.tight_layout()
     plt.savefig(path, format='png', dpi=300)
     
-    plt.show()  
+    #plt.show()  
 
 def plotHistogramPercent(df, filename: str):
     path = "../Output/" + filename + ".png"
@@ -38,10 +39,10 @@ def plotHistogramPercent(df, filename: str):
     plt.xlabel('Anteil Erneuerbar [%]')
     plt.ylabel('Anzahl an Viertelstunden')
     plt.title(filename)
-
+    plt.tight_layout()
     # Speichern und anzeigen
     plt.savefig(path, format='png', dpi=300)
-    plt.show()
+    #plt.show()
 
 #plots collumnchart of renewable energyproducers
 def plot_balk_rene(df, filename: str):
@@ -53,7 +54,7 @@ def plot_balk_rene(df, filename: str):
     summen = df[erzeuger_spalten].sum()/(1e+6)
     ylabel = 'Energie in TWh'
     xlabel = 'Erzeuger'
-
+    plt.tight_layout()
     plotBalken(summen, ylabel, xlabel, filename)
     plt.savefig(path, format='png', dpi=300)
 
@@ -70,7 +71,7 @@ def plot_balk_all(df, filename: str):
     summen = df[erzeuger_spalten].sum()/(1e+6)
     ylabel = 'Energieerzeugung in TWh'
     xlabel = 'Erzeuger'
-
+    plt.tight_layout()
     plotBalken(summen, ylabel, xlabel, filename)
     plt.savefig(path, format='png', dpi=300)
 
@@ -83,8 +84,8 @@ def plot_pie_prod(df, filename: str):
     konventionelle_summe = df[konventionelle_spalten].sum().sum()/(1e+6)
     labels = [f'Erneuerbare Energie ({erneuerbare_summe:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
     data = [erneuerbare_summe, konventionelle_summe]
-
-    plt.figure(figsize=(8, 8))
+    plt.tight_layout()
+    plt.figure(figsize=(10, 6))
     plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.tab20.colors)
     plt.title(filename, fontsize=14)
     plt.savefig(path, format='png', dpi=300)
@@ -97,7 +98,7 @@ def plot_pie_usage(df, df2, filename: str):
     konventionelle_summe = df['Residuallast'].sum().sum()/(1e+6)- erneuerbare_summe_res
     labels = [f'Photovoltaik und Windkraft ({erneuerbare_summe:.2f} TWh)', f'Biomasse, Wasserkraft, Sonst. EEs ({erneuerbare_summe_res:.2f} TWh)', f'Konventionelle Energie ({konventionelle_summe:.2f} TWh)']
     data = [erneuerbare_summe, erneuerbare_summe_res ,konventionelle_summe]
-
+    plt.tight_layout()
     plot_pie(data, labels, filename)
     plt.savefig(path, format='png', dpi=300)
 
@@ -107,7 +108,8 @@ def plot_pie_rene(df, filename: str):
     erzeuger_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
     data = df[erzeuger_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(erzeuger_spalten, data)]
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(10,6))
+    plt.tight_layout()
     plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.tab20.colors)
     plt.title(filename, fontsize=14)
     plt.savefig(path, format='png', dpi=300)
@@ -118,8 +120,8 @@ def plot_pie_conv(df, filename: str):
     konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     data = df[konventionelle_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(konventionelle_spalten, data)]
-
-    plt.figure(figsize=(8, 8))
+    plt.tight_layout()
+    plt.figure(figsize=(10, 6))
     plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.tab20.colors)
     plt.title(filename, fontsize=14)
     plt.savefig(path, format='png', dpi=300)
@@ -140,7 +142,7 @@ def plot_pie(data, labels, filename: str):
     )
     plt.title(filename)
     plt.savefig(path, format='png', dpi=300)
-    plt.show()
+    #plt.show()
 
 #visualization of columncharts
 def plotBalken(data, ylabel, xlabel, filename: str):
@@ -153,12 +155,12 @@ def plotBalken(data, ylabel, xlabel, filename: str):
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
     plt.xticks(rotation=15)
-
+    plt.tight_layout()
     for i, value in enumerate(data):
         plt.text(i, value + 1, f'{value:.2f}', ha='center', va='bottom')
 
     plt.savefig(path, format='png', dpi=300)
-    plt.show()
+    #plt.show()
 
 def plot_energy_data_from_df(df, filename):
     path = "../Output/" + filename + ".png"
@@ -203,13 +205,13 @@ def plot_energy_data_from_df(df, filename):
     plt.title('Zeitlicher Verlauf von Stromverbrauch, Produktion und Speicher', fontsize=16)
     plt.xlabel('Zeit', fontsize=14)
     plt.ylabel('Energie (MWh)', fontsize=14)
-
+    plt.tight_layout()
     # Gitter und Legende
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend(fontsize=12)
     plt.savefig(path, format='png', dpi=300)
     # Layout optimieren und anzeigen
-    plt.show()
+    #plt.show()
 
 
 def aggregate_and_plot(dataframes: list[pd.DataFrame]):
@@ -222,7 +224,12 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame]):
     years = []
 
     for df in dataframes:
-        total_column = df[column_to_sum].sum().sum() / 1e6  # in TWh
+        if column_to_sum == 'Wind':
+            total_column = df['Wind Onshore'].sum().sum() / 1e6 + df['Wind Offshore'].sum().sum() / 1e6  # in TWh
+        elif column_to_sum == 'Speicher':
+            total_column = df['Pumpspeicher Produktion'].sum().sum() / 1e6 + df['Batteriespeicher Produktion'].sum().sum() / 1e6
+        else:
+            total_column = df[column_to_sum].sum().sum() / 1e6  # in TWh
         total_consumption = df['Verbrauch'].sum().sum() / 1e6  # in TWh
         
         sums.append(total_column)
@@ -244,11 +251,20 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame]):
     ax1.set_title(f'Erzeugung von "{column_to_sum}" nach Jahr im Vergleich zum Verbrauch')
     ax1.legend(loc='upper left', fontsize=12)
 
+    # Text für TWh-Werte an den Punkten
+    for i, year in enumerate(years):
+        ax1.text(year, sums[i], f'{sums[i]:.2f}', color='green', fontsize=10, ha='center', va='bottom')
+        ax1.text(year, sums2[i], f'{sums2[i]:.2f}', color='blue', fontsize=10, ha='center', va='top')
+
     # Zweite Y-Achse für den Prozentanteil
     ax2 = ax1.twinx()
     ax2.plot(years, percentages, label=f'Anteil {column_to_sum} am Verbrauch (%)', color='orange', marker='o', linestyle='--')
     ax2.set_ylabel('Anteil (%)')
     ax2.set_ylim(0, 100)
+
+    # Text für Prozentsätze an den Punkten
+    for i, year in enumerate(years):
+        ax2.text(year, percentages[i], f'{percentages[i]:.2f}%', color='orange', fontsize=10, ha='center', va='bottom')
 
     # Kombinierte Legende
     ax2.legend(loc='upper right', fontsize=12)

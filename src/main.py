@@ -155,6 +155,7 @@ def visualize(simulationList):
     graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
     #graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
     graphics.plot_energy_data_from_df(dfv, 'Stromverbrauch und Produktion '+ visualizationYear)
+    clearScreen()
 
     graphics.aggregate_and_plot(simulationList)
 

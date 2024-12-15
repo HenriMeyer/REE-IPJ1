@@ -63,9 +63,9 @@ windOnshore = {
 }
 
 consumption = {
-    'worst' : 691750000,#-83250000 von E-Auto/Wärmepumpe
-    'mean' : 626687500,#-58312500 von E-Auto/Wärmepumpe
-    'best' : 560000000#-27000000 von E-Auto/Wärmepumpe
+    'worst' : 679750000,#-95250000 von E-Auto/Wärmepumpe
+    'mean' : 615687500,#-69312500 von E-Auto/Wärmepumpe
+    'best' : 559680000#-30200000 von E-Auto/Wärmepumpe
 }
 
 waermepumpe =  {
