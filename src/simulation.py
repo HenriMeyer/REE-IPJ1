@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 START_YEAR = 2023
 COAL_EXIT = 2038
+WAERMEPUMPE_2023 = 450000
 
 generation = {
     'Biomasse': 37826000,
@@ -17,8 +18,9 @@ generation = {
     'Erdgas': 50143000,
     'Pumpspeicher': 10647000,
     'Sonstige Konventionelle': 12000000,
-    'Wärmepumpe' : 1,
-    'E-Auto' : 1,
+    'Wärmepumpe': 1,
+    'E-Auto': 1,
+    'E-LKW': 1,
     'Verbrauch': 685000000
 }
 
@@ -69,17 +71,27 @@ consumption = {
 }
 
 waermepumpe =  {
+    # Anzahl mal Verbrauch pro Jahr pro Wärmpepumpe
     'Wärmepumpe' : {
-        'worst' : 3312371238,
-        'mean' : 20000,
-        'best' : 100000
+        'worst' : 11773440,
+        'mean' : 27318060,
+        'best' : 19061760
     }
 }
+
 eauto = {
     'E-Auto' : {
-        'worst' : 8000000,
-        'mean' :11125000,
-        'average' : 21000000
+        'worst' : 18000000,
+        'mean' :25000000,
+        'best' : 47000000
+    }
+}
+
+elkw = {
+    'E-LKW' : {
+        'worst' : 2280000,
+        'mean' :17100000,
+        'best' : 31920000
     }
 }
 
@@ -98,8 +110,9 @@ def scenarioOverall(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame])
         'Wind Offshore': windOffshore,
         'Wind Onshore': windOnshore,
         'Verbrauch': consumption,
-        'Wärmepumpe' : waermepumpe,
-        'E-Auto' : eauto
+        'Wärmepumpe': waermepumpe,
+        'E-Auto': eauto,
+        'E-LKW': elkw
     }
     global generation
     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
@@ -213,20 +226,32 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
     
     dfOriginal['E-Auto'] = 0
     dfOriginal['Wärmepumpe'] = 0
+    dfOriginal['E-LKW'] = 0
 
     for column in (dfOriginal.columns):
-        if column in ['Datum von', 'Datum bis']:
+        if column in ['Datum von', 'Datum bis', 'Verbrauch']:
             continue
         if column in generation:
             # For year 2023 coal
             if column in ['Braunkohle','Steinkohle']:
                 dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
-            elif column in ['E-Auto', 'Wärmepumpe']:
-                dfCurrent[column] = round((loadProfile[column]*generation[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + 1),2)
+            elif column in ['E-Auto', 'Wärmepumpe', 'E-LKW']:
+                dfCurrent[column] = round(loadProfile[column] * (((generation[column] / loadProfile[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+            elif column == 'Verbrauch':
+                # E-Auto, E-LKW & Wärmepumpe
+                values = 3570 + 1556 + 2235114
+                dfCurrent[column] =  round(dfOriginal[column] * ((((generation[column] - values) / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+                for diffrentColumn in ['E-Auto', 'Wärmepumpe', 'E-LKW']:
+                    dfCurrent[column] += dfCurrent[diffrentColumn]
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
             print(column + " wasn't simulated.")
+    # E-Auto, E-LKW & Wärmepumpe
+    values = 3570 + 1556 + 2235114
+    dfCurrent['Verbrauch'] =  round(dfOriginal['Verbrauch'] * ((((generation['Verbrauch'] - values) / dfOriginal['Verbrauch'].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
+    for diffrentColumn in ['E-Auto', 'Wärmepumpe', 'E-LKW']:
+        dfCurrent['Verbrauch'] += round(dfCurrent[diffrentColumn], 2)
 
     return dfCurrent.copy()
 
