@@ -52,7 +52,6 @@ def main():
             
     # List for simulation
     simulationList = list()
-    
     # Menu
     print("\033[1mSimulationtool (Start: 2023)\033[0m")
     print("Available commands:")
@@ -80,6 +79,13 @@ def main():
                 for cmd in commands():
                     print(f"- {cmd['command']}: {cmd['description']}")
             case _:
+                # Clear screen
+                clearScreen()
+                # Menu
+                print("\033[1mSimulationtool (Start: 2023)\033[0m")
+                print("Available commands:")
+                for cmd in commands():
+                    print(f"- {cmd['command']}: {cmd['description']}")
                 print(f"\033[31mUnrecognized command: {user_input}\033[0m")
 
 def commands() -> list:
@@ -142,11 +148,15 @@ def visualize(simulationList):
         else:
             print(f"\033[31m{visualizationYear} is an invalid input!\033[0m")
 
+
     dfv = data.addInformation(dfv)
     graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
     graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
     graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
-    graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
+    #graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
+    graphics.plot_energy_data_from_df(dfv, 'Stromverbrauch und Produktion '+ visualizationYear)
+
+    graphics.aggregate_and_plot(simulationList)
 
 
 def plot_data(dfe, dfv, time):

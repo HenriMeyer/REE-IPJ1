@@ -111,7 +111,7 @@ def readLoadProfile():
             },
             inplace=True
         )
-        print(df)
+        df['Wärmepumpe'] = df['Wärmepumpe']/3*5
 
     return {'leap': dfleap, 'normal': dfnormal}
 
@@ -126,7 +126,7 @@ def formatTime(df) -> pd.DataFrame:
     df['Monat Tag'] = df['Datum von'].dt.strftime('%m %d')
     
     # Remove the original date columns
-    df = df.drop(columns=['Datum von', 'Datum bis'])
+    #df = df.drop(columns=['Datum von', 'Datum bis'])
     return df
 
 # Sum of one column
@@ -137,7 +137,8 @@ def sumColumn(df, columnName: str) -> np.float64:
 # Generation
 # Add further information
 def addPercentageRenewableLast(df):
-    df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare']].sum(axis=1)/df['Verbrauch']*100).round(2)
+    df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
+        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
     return df
 
 def addInformation(df) -> pd.DataFrame:
