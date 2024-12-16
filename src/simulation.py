@@ -287,7 +287,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
             # For year 2023 coal
             if column in ['Braunkohle','Steinkohle']:
                 dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
-            elif column in ['E-Auto', 'E_LKW', 'Wärmepumpe']:
+            elif column in ['E-Auto', 'E-LKW', 'Wärmepumpe']:
                 dfCurrent[column] = round((loadProfile[column]*(generation[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)

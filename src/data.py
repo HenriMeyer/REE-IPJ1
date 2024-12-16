@@ -102,7 +102,7 @@ def readLoadProfile():
 
         # Berechnung durchführen
         df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
-        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']
+        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']*22
         # Spalten umbenennen
         df.rename(
             columns={
