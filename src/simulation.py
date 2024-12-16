@@ -17,8 +17,9 @@ generation = {
     'Erdgas': 50143000,
     'Pumpspeicher': 10647000,
     'Sonstige Konventionelle': 12000000,
-    'Wärmepumpe' : 1,
-    'E-Auto' : 1,
+    'Wärmepumpe': 1,
+    'E-Auto': 1,
+    'E-LKW': 1,
     'Verbrauch': 685000000
 }
 
@@ -63,9 +64,9 @@ windOnshore = {
 }
 
 consumption = {
-    'worst' : 691750000,#-83250000 von E-Auto/Wärmepumpe
-    'mean' : 626687500,#-58312500 von E-Auto/Wärmepumpe
-    'best' : 560000000#-27000000 von E-Auto/Wärmepumpe
+    'worst' : 679750000,#-95250000 von E-Auto/Wärmepumpe
+    'mean' : 615687500,#-69312500 von E-Auto/Wärmepumpe
+    'best' : 559680000#-30200000 von E-Auto/Wärmepumpe
 }
 
 waermepumpe =  {
@@ -85,6 +86,14 @@ eauto = {
 start = {
     'Wärmepumpe' : 1600000,
     'E-Auto' : 1590000,
+    'E-LKW': 2000
+}
+elkw = {
+    'E-LKW' : {
+        'worst' : 2280000,
+        'mean' :17100000,
+        'best' : 31920000
+    }
 }
 speicher = {
     'Speicher' : {
@@ -132,6 +141,7 @@ def scenarioOverall(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame])
         'Verbrauch': consumption,
         'Wärmepumpe' : waermepumpe,
         'E-Auto' : eauto,
+        'E-LKW': elkw,
         'Speicher' : speicher
     }
     global generation
@@ -169,6 +179,7 @@ def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) ->
         'Verbrauch': consumption,
         'Wärmepumpe' : waermepumpe,
         'E-Auto' : eauto,
+        'E-LKW' : elkw,
         'Speicher' : speicher
     }
     global generation
@@ -246,7 +257,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
         for future in futures:
             dfList.append(future.result())
     
-    #dfList = linearBeginning(dfList)
+    dfList = linearBeginning(dfList)
     with ThreadPoolExecutor() as executor:
         futures = []
         for df in dfList:
@@ -267,6 +278,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
     
     dfOriginal['E-Auto'] = 0
     dfOriginal['Wärmepumpe'] = 0
+    dfOriginal['E-LKW'] = 0
 
     for column in (dfOriginal.columns):
         if column in ['Datum von', 'Datum bis']:
@@ -275,7 +287,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
             # For year 2023 coal
             if column in ['Braunkohle','Steinkohle']:
                 dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
-            elif column in ['E-Auto', 'Wärmepumpe']:
+            elif column in ['E-Auto', 'E-LKW', 'Wärmepumpe']:
                 dfCurrent[column] = round((loadProfile[column]*(generation[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
@@ -394,7 +406,7 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher Produktion',
         'Batteriespeicher Produktion','Braunkohle', 'Steinkohle', 'Erdgas',
-        'Sonstige Konventionelle','Wärmepumpe','E-Auto','Verbrauch',
+        'Sonstige Konventionelle','Wärmepumpe','E-Auto', 'E-LKW', 'Verbrauch',
         'Batteriespeicher', 'Pumpspeicher', 'Überschuss', 'Ungenutzte Energie'
     ]
     df = df[new_order]
