@@ -16,7 +16,7 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     
     print(df)
     
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     heatmap_data = df.pivot_table(index = indexY, columns = indexX , values=colName, aggfunc=np.mean) # Leistungsmittelwerte!
 
     plt.figure(figsize=(20, 8))
@@ -31,7 +31,7 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     #plt.show()  
 
 def plotHistogramPercent(df, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     df['Anteil Erneuerbar [%]'] = df['Anteil Erneuerbar [%]'].clip(upper=115)
     # Histogram erstellen und die x-Achse als Prozentwerte anzeigen
     plt.figure(figsize=(10, 6))
@@ -46,7 +46,7 @@ def plotHistogramPercent(df, filename: str):
 
 #plots collumnchart of renewable energyproducers
 def plot_balk_rene(df, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     erzeuger_spalten = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare'
@@ -61,7 +61,7 @@ def plot_balk_rene(df, filename: str):
 
 #plots columnchart of all energyproducers
 def plot_balk_all(df, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     erzeuger_spalten = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 
         'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare',
@@ -77,7 +77,7 @@ def plot_balk_all(df, filename: str):
 
 #plots piechart of energyproduction
 def plot_pie_prod(df, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     erneuerbare_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
     konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     erneuerbare_summe = df[erneuerbare_spalten].sum().sum()/(1e+6)
@@ -92,7 +92,7 @@ def plot_pie_prod(df, filename: str):
 
 #plots piechart of energyusage
 def plot_pie_usage(df, df2, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     erneuerbare_summe = (df['Gesamt'].sum().sum()-df['Residuallast'].sum().sum())/(1e+6)
     erneuerbare_summe_res = (df2['Biomasse'].sum().sum()+ df2['Wasserkraft'].sum().sum() + df2['Sonstige Erneuerbare'].sum().sum())/(1e+6)
     konventionelle_summe = df['Residuallast'].sum().sum()/(1e+6)- erneuerbare_summe_res
@@ -104,7 +104,7 @@ def plot_pie_usage(df, df2, filename: str):
 
 #plots piechart of renewables
 def plot_pie_rene(df, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     erzeuger_spalten = ['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']
     data = df[erzeuger_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(erzeuger_spalten, data)]
@@ -116,7 +116,7 @@ def plot_pie_rene(df, filename: str):
 
 #plots piechart of conventionals
 def plot_pie_conv(df, filename: str):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     konventionelle_spalten = ['Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle']
     data = df[konventionelle_spalten].sum() / 1e+6
     labels = [f'{name} ({value:.2f} TWh)' for name, value in zip(konventionelle_spalten, data)]
@@ -163,7 +163,7 @@ def plotBalken(data, ylabel, xlabel, filename: str):
     #plt.show()
 
 def plot_energy_data_from_df(df, filename):
-    path = "../Output/" + filename + ".png"
+    path = "../output/" + filename + ".png"
     df['Datum von'] = pd.to_datetime(df['Datum von'])
 
     # Gruppieren nach Woche und aufsummieren
@@ -216,7 +216,7 @@ def plot_energy_data_from_df(df, filename):
 
 def aggregate_and_plot(dataframes: list[pd.DataFrame]):
     column_to_sum = input("Welche Spalte soll summiert werden? Bitte Spaltennamen eingeben: ")
-    path = f"../Output/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
+    path = f"../output/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
     
     sums = []
     sums2 = []

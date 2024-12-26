@@ -159,7 +159,7 @@ def countPercentageRenewableExclude(df) -> list:
 
 # Append to CSV
 def appendCSV(dfList: list) -> None:
-    folder = "../Output/CSV/Simulation"
+    folder = "../output/CSV/Simulation"
     with ThreadPoolExecutor() as executor:
         futures = []
         for df in dfList:
@@ -171,7 +171,7 @@ def appendCSV(dfList: list) -> None:
     
 # Write simulation to excel
 def writeExcel(dfList: pd.DataFrame) -> None:
-    excelFilename = "../Output/Excel/Simulation.xlsx"
+    excelFilename = "../output/Excel/Simulation.xlsx"
     with pd.ExcelWriter(excelFilename, engine="openpyxl") as writer:
         for df in dfList:
             df.to_excel(writer, sheet_name=str(df['Datum von'].dt.year.iloc[0]), index=False, header=True)
