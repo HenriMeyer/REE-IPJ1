@@ -1,5 +1,4 @@
 import data
-import gui
 import graphics
 import simulation
 import pandas as pd
