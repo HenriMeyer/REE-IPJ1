@@ -71,8 +71,8 @@ def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
 
 def readLoadProfile() -> dict:
     # Read data
-    dfleap = pd.read_csv("..\data\loadprofile_leapyear.csv", sep = ';', encoding = 'latin-1', decimal = ',')
-    dfnormal = pd.read_csv("..\data\loadprofile_normal.csv", sep = ';', encoding = 'latin-1', decimal = ',')
+    dfleap = pd.read_csv("../data/loadprofile_leapyear.csv", sep = ';', encoding = 'latin-1', decimal = ',')
+    dfnormal = pd.read_csv("../data/loadprofile_normal.csv", sep = ';', encoding = 'latin-1', decimal = ',')
 
     for df in (dfleap, dfnormal):
         # Remove timestamps
