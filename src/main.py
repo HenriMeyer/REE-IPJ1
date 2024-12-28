@@ -45,17 +45,18 @@ def main():
     with ThreadPoolExecutor() as executor:
         futures = []
         for i in range(len(genList)):
-            futures.append(executor.submit(data.read_SMARD, genList[i], useList[i]))
+            futures.append(executor.submit(data.readSMARD, genList[i], useList[i]))
         for future in futures:
             dfList.append(future.result())
             
     # List for simulation
     simulationList = list()
+    # List for szenarios
+    szenarioList: list[dict] = list()
+    
     # Menu
     print("\033[1mSimulationtool (Start: 2023)\033[0m")
-    print("Available commands:")
-    for cmd in commands():
-        print(f"- {cmd['command']}: {cmd['description']}")
+    printCommands()
     while True:
         user_input = input("Write your commands (or 'quit' to exit the program): ")
         match user_input.lower():
@@ -66,28 +67,50 @@ def main():
                 simulationList = simulation.scenarioOverall(dfList, loadProfile)
             case "szenario":
                 simulationList = simulation.scenarioEach(dfList, loadProfile)
-            case "excel":
-                print("Writing data to excel...")
-                data.writeExcel(simulationList)
+                # szenarioList.append({"TEST": simulationList})
             case "visualize":
                 visualize(simulationList)
+            case "excel":
+                if len(szenarioList) > 1:
+                    while True:
+                        for currentDict in szenarioList:
+                            print(f"- {currentDict}")
+                        userInput = input("Choose your szenario: ")
+                        if userInput not in list(szenarioList.keys()):
+                            print("\033[31mWrong input!\033[0m")
+                        else:
+                            break
+                    data.writeExcel(szenarioList[userInput])
+                elif simulationList:
+                    data.writeExcel(simulationList)
+                else:
+                    print("\033[31mNo simulation has been made!\033[0m")
             case "csv":
-                data.appendCSV(simulationList)
+                if len(szenarioList) > 1:
+                    while True:
+                        for currentDict in szenarioList:
+                            print(f"- {currentDict}")
+                        userInput = input("Choose your szenario: ")
+                        if userInput not in list(szenarioList.keys()):
+                            print("\033[31mWrong input!\033[0m")
+                        else:
+                            break
+                    data.writeCSV(szenarioList[userInput])
+                elif simulationList:
+                    data.writeCSV(simulationList)
+                else:
+                    print("\033[31mNo simulation has been made!\033[0m")
             case "help":
                 print("Available commands:")
-                for cmd in commands():
-                    print(f"- {cmd['command']}: {cmd['description']}")
-            case _:
-                # Clear screen
+                printCommands()
+            case "clear":
                 clearScreen()
-                # Menu
                 print("\033[1mSimulationtool (Start: 2023)\033[0m")
-                print("Available commands:")
-                for cmd in commands():
-                    print(f"- {cmd['command']}: {cmd['description']}")
+                printCommands()
+            case _:
                 print(f"\033[31mUnrecognized command: {user_input}\033[0m")
 
-def commands() -> list:
+def printCommands() -> None:
     commands = [
         {"command": "quit", "description": "Terminates the program."},
         {"command": "simulation", "description": "Runs a simulation using the given data."},
@@ -95,9 +118,12 @@ def commands() -> list:
         {"command": "excel", "description": "Writes the simulation data to an Excel file."},
         {"command": "visualize", "description": "Visualizes the simulation results."},
         {"command": "csv", "description": "Appends data to a CSV file."},
+        {"command": "clear", "description": "Clear the screen."},
         {"command": "help", "description": "Shows this list of commands."}
     ]
-    return commands
+    
+    for cmd in commands:
+        print(f"- {cmd['command']}: {cmd['description']}")
 
 def clearScreen() -> None:
     if os.name == 'nt':  # Windows (cmd oder PowerShell)

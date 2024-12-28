@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 # Get data and input is filename of the source, don't forget '.csv'
-def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
+def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
     # Path -> move up a directory
     pathGen = "../data/" + filenameGen
     pathUse = "../data/" + filenameUse
@@ -13,12 +13,12 @@ def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
         # Read file
         dfGen = pd.read_csv(
             pathGen,
-            sep=';',
-            decimal=',',
-            thousands='.',
-            na_values=['-'],
-            parse_dates=[0,1],
-            dayfirst=True
+            sep = ';',
+            decimal = ',',
+            thousands = '.',
+            na_values = ['-'],
+            parse_dates = [0,1],
+            dayfirst = True
         )
     except FileNotFoundError:
         print(f"File '{filenameGen}' has not been found at path: {pathGen}")
@@ -37,86 +37,72 @@ def read_SMARD(filenameGen, filenameUse) -> pd.DataFrame:
         print(f"File '{filenameUse}' has not been found at path: {pathUse}")
 
     # Change names and drop obsolete
-    dfGen = dfGen.rename(
-    columns={
-        'Biomasse [MWh] Originalauflösungen': 'Biomasse',
-        'Wasserkraft [MWh] Originalauflösungen' : 'Wasserkraft',
-        'Wind Offshore [MWh] Originalauflösungen':'Wind Offshore',
-        'Wind Onshore [MWh] Originalauflösungen':'Wind Onshore',
-        'Photovoltaik [MWh] Originalauflösungen':'Photovoltaik',
-        'Sonstige Erneuerbare [MWh] Originalauflösungen':'Sonstige Erneuerbare',
-        'Kernenergie [MWh] Originalauflösungen':'Kernenergie',
-        'Braunkohle [MWh] Originalauflösungen':'Braunkohle',
-        'Steinkohle [MWh] Originalauflösungen':'Steinkohle',
-        'Erdgas [MWh] Originalauflösungen':'Erdgas',
-        'Pumpspeicher [MWh] Originalauflösungen':'Pumpspeicher',
-        'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
+    dfGen = dfGen.drop(columns = ['Kernenergie [MWh] Originalauflösungen'])
+    dfGen = dfGen.rename(columns = {
+            'Biomasse [MWh] Originalauflösungen': 'Biomasse',
+            'Wasserkraft [MWh] Originalauflösungen' : 'Wasserkraft',
+            'Wind Offshore [MWh] Originalauflösungen':'Wind Offshore',
+            'Wind Onshore [MWh] Originalauflösungen':'Wind Onshore',
+            'Photovoltaik [MWh] Originalauflösungen':'Photovoltaik',
+            'Sonstige Erneuerbare [MWh] Originalauflösungen':'Sonstige Erneuerbare',
+            'Braunkohle [MWh] Originalauflösungen':'Braunkohle',
+            'Steinkohle [MWh] Originalauflösungen':'Steinkohle',
+            'Erdgas [MWh] Originalauflösungen':'Erdgas',
+            'Pumpspeicher [MWh] Originalauflösungen':'Pumpspeicher',
+            'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
         }
     )
 
-    dfGen = dfGen.drop(columns = ['Kernenergie'])
-        
-    dfUse = dfUse.rename(
-    columns={'Gesamt (Netzlast) [MWh] Originalauflösungen': 'Verbrauch',
-              'Residuallast [MWh] Originalauflösungen': 'Residuallast',
-             'Pumpspeicher [MWh] Originalauflösungen': 'Pumpspeicher'
-        }
-    )
-
-    dfUse = dfUse.drop(columns = ['Residuallast', 'Pumpspeicher', 'Datum von', 'Datum bis'])
-        
+    dfUse = dfUse.drop(columns = ['Residuallast [MWh] Originalauflösungen', 'Pumpspeicher [MWh] Originalauflösungen', 'Datum von', 'Datum bis'])
+    dfUse = dfUse.rename(columns = {'Gesamt (Netzlast) [MWh] Originalauflösungen': 'Verbrauch'})
+    
     df = pd.concat([dfGen, dfUse], axis = 1)
 
     # Reorder the columns
-    new_order = [
-        'Datum von', 'Datum bis',
-        'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
-        'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
-        'Braunkohle', 'Steinkohle', 'Erdgas',
-        'Sonstige Konventionelle','Verbrauch'
+    df = df[
+        [
+            'Datum von', 'Datum bis','Biomasse', 'Wasserkraft', 'Wind Onshore',
+            'Wind Offshore', 'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
+            'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle', 'Verbrauch'
+        ]
     ]
-    df = df[new_order]
 
     return df
 
-def readLoadProfile():
-    # Gemeinsame Optionen für das Einlesen
-    read_options = {
-        'sep': ';',                  # Trennzeichen
-        'encoding': 'latin-1',       # Encoding
-        'decimal': ','              # Dezimaltrennzeichen (falls notwendig)
-    }
-
-    # Dateien einlesen
-    dfleap = pd.read_csv("..\data\loadprofile_leapyear.csv", **read_options)
-    dfnormal = pd.read_csv("..\data\loadprofile_normal.csv", **read_options)
+def readLoadProfile() -> dict:
+    # Read data
+    dfleap = pd.read_csv("..\data\loadprofile_leapyear.csv", sep = ';', encoding = 'latin-1', decimal = ',')
+    dfnormal = pd.read_csv("..\data\loadprofile_normal.csv", sep = ';', encoding = 'latin-1', decimal = ',')
 
     for df in (dfleap, dfnormal):
-        # Entfernen von Zeitdaten
+        # Remove timestamps
         df.drop(columns=['Jahr_von', 'Zeit_von'], inplace=True)
 
-        # Zahlen als Float konvertieren, falls nötig
+        # Calculation
         for column in ['Waermepumpe[in kWh]', 'Elektroauto[Tagesnormiert]']:
             df[column] = pd.to_numeric(df[column], errors='coerce')
             df[column] /= 1000
 
-        # Berechnung durchführen
         df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
         df['E-LKW'] = df['Elektroauto[Tagesnormiert]']*22
-        # Spalten umbenennen
+        
         df.rename(
-            columns={
+            columns = {
                 'Waermepumpe[in kWh]': 'Wärmepumpe',
                 'Elektroauto[Tagesnormiert]': 'E-Auto'
             },
-            inplace=True
+            inplace = True
         )
         df['Wärmepumpe'] = df['Wärmepumpe']/3*5
 
     return {'leap': dfleap, 'normal': dfnormal}
 
-# General
 # Add further information
+def addInformation(df) -> pd.DataFrame:
+    df = formatTime(df)
+    df = addPercentageRenewableLast(df)
+    return df
+
 def formatTime(df) -> pd.DataFrame:
     # Extract year, month, day, hour, minute from 'Datum von'
     df['Jahr'] = df['Datum von'].dt.year
@@ -125,26 +111,13 @@ def formatTime(df) -> pd.DataFrame:
     df['Uhrzeit'] = df['Datum von'].dt.time
     df['Monat Tag'] = df['Datum von'].dt.strftime('%m %d')
     
-    # Remove the original date columns
-    #df = df.drop(columns=['Datum von', 'Datum bis'])
     return df
 
-# Sum of one column
-def sumColumn(df, columnName: str) -> np.float64:
-    return df.loc[:,columnName].sum(axis=0)
-
-
-# Generation
-# Add further information
-def addPercentageRenewableLast(df):
+def addPercentageRenewableLast(df) -> pd.DataFrame:
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
     return df
 
-def addInformation(df) -> pd.DataFrame:
-    df = formatTime(df)
-    df = addPercentageRenewableLast(df)
-    return df
 
 # Renewable portion for each row excluding already counted
 def countPercentageRenewableExclude(df) -> list:
@@ -157,8 +130,10 @@ def countPercentageRenewableExclude(df) -> list:
         
     return vector.tolist()
 
+
 # Append to CSV
-def appendCSV(dfList: list) -> None:
+def writeCSV(dfList: list) -> None:
+    print("Writing data to csv...")
     folder = "../output/CSV/Simulation"
     with ThreadPoolExecutor() as executor:
         futures = []
@@ -171,12 +146,13 @@ def appendCSV(dfList: list) -> None:
     
 # Write simulation to excel
 def writeExcel(dfList: pd.DataFrame) -> None:
+    print("Writing data to excel...")
     excelFilename = "../output/Excel/Simulation.xlsx"
     with pd.ExcelWriter(excelFilename, engine="openpyxl") as writer:
         for df in dfList:
             df.to_excel(writer, sheet_name=str(df['Datum von'].dt.year.iloc[0]), index=False, header=True)
     print(f"Die Excel-Datei '{excelFilename}' wurde erfolgreich erstellt.")
 
-
-# For Testing
-# if __name__ == "__main__":
+# Sum of one column
+def sumColumn(df, columnName: str) -> np.float64:
+    return df.loc[:,columnName].sum(axis=0)
