@@ -58,16 +58,16 @@ def main():
     print("\033[1mSimulationtool (Start: 2023)\033[0m")
     printCommands()
     while True:
-        user_input = input("Write your commands (or 'quit' to exit the program): ")
-        match user_input.lower():
+        userInput = input("Write your commands (or 'quit' to exit the program): ")
+        match userInput.lower():
             case "quit":
                 print("Program will be terminated.")
                 break
-            case "simulation":
-                simulationList = simulation.scenarioOverall(dfList, loadProfile)
-            case "szenario":
-                simulationList = simulation.scenarioEach(dfList, loadProfile)
-                # szenarioList.append({"TEST": simulationList})
+            case "szenarios":
+                simulationList = simulation.scenarios(dfList, loadProfile)
+            # case "szenario":
+            #     simulationList = simulation.ownScenario(dfList, loadProfile)
+            #     # szenarioList.append({"TEST": simulationList})
             case "visualize":
                 visualize(simulationList)
             case "excel":
@@ -108,13 +108,13 @@ def main():
                 print("\033[1mSimulationtool (Start: 2023)\033[0m")
                 printCommands()
             case _:
-                print(f"\033[31mUnrecognized command: {user_input}\033[0m")
+                print(f"\033[31mUnrecognized command: {userInput}\033[0m")
 
 def printCommands() -> None:
     commands = [
         {"command": "quit", "description": "Terminates the program."},
         {"command": "simulation", "description": "Runs a simulation using the given data."},
-        {"command": "szenario", "description": "Runs a scenario analysis on the given data."},
+        {"command": "szenarios", "description": "Runs one of many scenarios."},
         {"command": "excel", "description": "Writes the simulation data to an Excel file."},
         {"command": "visualize", "description": "Visualizes the simulation results."},
         {"command": "csv", "description": "Appends data to a CSV file."},
