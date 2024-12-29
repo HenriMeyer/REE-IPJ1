@@ -26,61 +26,61 @@ generation = {
 # Installierte Leistungen in MW
 photovoltaik = {
     'Installierte Leistung [MW]' : {
-        'worst' : 180000,
-        'mean' : 215000,
-        'best' : 240000
+        'min' : 180000,
+        'mid' : 215000,
+        'max' : 240000
     },
     'Globalstrahlung [Wh/m^2]' : {
-        'worst' : 1036,
-        'mean' : 1151.5,
-        'best' : 1266.6
+        'min' : 1036,
+        'mid' : 1151.5,
+        'max' : 1266.6
     }
 }
 
 windOffshore = {
     'Installierte Leistung [MW]' : {
-        'worst' : 8500,
-        'mean' : 22000,
-        'best' : 30000
+        'min' : 8500,
+        'mid' : 22000,
+        'max' : 30000
     },
     'Volllaststunden [h]' : {
-        'worst' : 4500,
-        'mean' : 5000,
-        'best' : 6000
+        'min' : 4500,
+        'mid' : 5000,
+        'max' : 6000
     }
 }
 
 windOnshore = {
     'Installierte Leistung [MW]' : {
-        'worst' : 60000,
-        'mean' : 75000,
-        'best' : 100000
+        'min' : 60000,
+        'mid' : 75000,
+        'max' : 100000
     },
     'Volllaststunden [h]' : {
-        'worst' : 2700,
-        'mean' : 3000,
-        'best' : 3300
+        'min' : 2700,
+        'mid' : 3000,
+        'max' : 3300
     }
 }
 
 consumption = {
-    'worst' : 679750000,#-95250000 von E-Auto/Wärmepumpe
-    'mean' : 615687500,#-69312500 von E-Auto/Wärmepumpe
-    'best' : 559680000#-30200000 von E-Auto/Wärmepumpe
+    'min' : 679750000,#-95250000 von E-Auto/Wärmepumpe
+    'mid' : 615687500,#-69312500 von E-Auto/Wärmepumpe
+    'max' : 559680000#-30200000 von E-Auto/Wärmepumpe
 }
 
 waermepumpe =  {
     'Wärmepumpe' : {
-        'worst' : 0,
-        'mean' : 3900000,
-        'best' : 4400000
+        'min' : 0,
+        'mid' : 3900000,
+        'max' : 4400000
     }
 }
 eauto = {
     'E-Auto' : {
-        'worst' : 6410000,
-        'mean' : 9660000,
-        'best' : 19410000
+        'min' : 6410000,
+        'mid' : 9660000,
+        'max' : 19410000
     }
 }
 start = {
@@ -90,26 +90,26 @@ start = {
 }
 elkw = {
     'E-LKW' : {
-        'worst' : 2280000,
-        'mean' :17100000,
-        'best' : 31920000
+        'min' : 2280000,
+        'mid' :17100000,
+        'max' : 31920000
     }
 }
-speicher = {
+storage = {
     'Speicher' : {
-    'worst' : {
+    'min' : {
         'pump_cap' : 45000,
         'pump_load' : 9700,
         'batt_cap' : 1924,
         'batt_load' : 1500
     },
-    'mean' : {
+    'mid' : {
         'pump_cap' : 70000,
         'pump_load' : 15000,
         'batt_cap' : 60000,
         'batt_load' : 15000
     },
-    'best' : {
+    'max' : {
         'pump_cap' : 120000,
         'pump_load' : 30000,
         'batt_cap' : 100000,
@@ -117,7 +117,7 @@ speicher = {
     }
     }
 }
-speicher_use = {
+storageUsage = {
     'pump_cap' : 1,
     'pump_load' : 1,
     'batt_cap' : 1,
@@ -125,117 +125,185 @@ speicher_use = {
 }
 
 
-def scenarioOverall(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
+def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence"]
+    
     while True:
-        userInput = input("What scenario do you want, you may choose between 'best', 'mean' and 'worst': ")
-        print()
-        if userInput not in ['best', 'mean', 'worst']:
-            print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
+        print(f"Available scenarios:")
+        for szenario in choicesSzenarios:
+            print(f"- {szenario}")
+        userInput = input("Type in one of the mentioned szenarios: ")
+        if userInput not in choicesSzenarios:
+            print("\033[31mWrong input!\033[0m")
         else:
             break
-
-    choices = {
-        'Photovoltaik': photovoltaik,
-        'Wind Offshore': windOffshore,
-        'Wind Onshore': windOnshore,
-        'Verbrauch': consumption,
-        'Wärmepumpe' : waermepumpe,
-        'E-Auto' : eauto,
-        'E-LKW': elkw,
-        'Speicher' : speicher
-    }
-    global generation
-    global speicher_use
-    generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
-
-    for category, subdict in choices.items():
-        if category == 'Speicher':
-            speicher_use['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
-            speicher_use['pump_load'] = speicher['Speicher'][userInput]['pump_load']
-            speicher_use['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
-            speicher_use['batt_load'] = speicher['Speicher'][userInput]['batt_load']
-        
-        elif category != 'Verbrauch':
-            for key, scenarios in subdict.items():
-                if userInput in scenarios:
-                    generation[category] *= scenarios[userInput]
-        elif category == 'Verbrauch':
-            if userInput in subdict:
-                generation[category] *= subdict[userInput]
-        else:
-            print("\033[31mError in szenario.\033[0m")
-
-    generation['Photovoltaik']*=0.8 # loss factor := 0.8
-        
-    return simulation(dfList, 2030, loadProfile)
-                
-        
-
-def scenarioEach(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
-    choices = {
-        'Photovoltaik': photovoltaik,
-        'Wind Offshore': windOffshore,
-        'Wind Onshore': windOnshore,
-        'Verbrauch': consumption,
-        'Wärmepumpe' : waermepumpe,
-        'E-Auto' : eauto,
-        'E-LKW' : elkw,
-        'Speicher' : speicher
-    }
-    global generation
-    global speicher_use
-    generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
     
-    for category, subdict in choices.items():
-        if category == 'Speicher':
-            print(f"Kategorie: {category}")
-            while True:
-                    userInput = input("Choose between 'best', 'mean' and 'worst': ")
-                    print()
-                    if userInput not in ['best', 'mean', 'worst']:
-                        print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
-                    else:
-                        speicher_use['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
-                        speicher_use['pump_load'] = speicher['Speicher'][userInput]['pump_load']
-                        speicher_use['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
-                        speicher_use['batt_load'] = speicher['Speicher'][userInput]['batt_load']
-                        break
-        elif category != 'Verbrauch':
-            for key, scenarios in subdict.items():
-                print(f"Kategorie: {category}")
-                print(f"\tUnterkategorie: {key}")
-                for scenario, value in scenarios.items():
-                    print(f"\t\tSzenario: {scenario} -> {value}")
-                while True:
-                    userInput = input("Choose between 'best', 'mean' and 'worst': ")
-                    print()
-                    if userInput not in ['best', 'mean', 'worst']:
-                        print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
-                    else:
-                        break
-                if category in generation:
-                    generation[category] *= scenarios[userInput]
-                else:
-                    print("\033[31mError category wasn't found in generation dictonary.\033[0m")
-        elif category == 'Verbrauch':
-            print(f"Kategorie: {category}[MWh]")
-            for scenario, value in subdict.items():
-                print(f"\t\tSzenario: {scenario} -> {value}")
-            while True:
-                userInput = input("Choose between 'best', 'mean' and 'worst': ")
-                print()
-                
-                if userInput not in ['best', 'mean', 'worst']:
-                    print("\033[31mWrong input! Please enter 'best', 'mean', or 'worst'.\033[0m")
-                else:
-                    break
-            generation[category] *= subdict[userInput]
-        else:
-            print("\033[31mError in szenario.\033[0m")
+    global generation
+    match userInput.lower():
+        case "retention":
+            generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['min'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
+            generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['min'] * windOnshore['Volllaststunden [h]']['mid']
+            generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['min'] * windOffshore['Volllaststunden [h]']['mid']
+            generation['Verbrauch'] = consumption['mid']
+            generation['E-Auto'] = eauto['E-Auto']['min']
+            generation['E-LKW'] = elkw['E-LKW']['min']
+            generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']
+            for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
+        case "imbalance":
+            generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['min'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
+            generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['min'] * windOnshore['Volllaststunden [h]']['mid']
+            generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['min'] * windOffshore['Volllaststunden [h]']['mid']
+            generation['Verbrauch'] = consumption['max']
+            generation['E-Auto'] = eauto['E-Auto']['max']
+            generation['E-LKW'] = elkw['E-LKW']['max']
+            generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
+            for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
+        case "no storage":
+            generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['mid'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
+            generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['mid'] * windOnshore['Volllaststunden [h]']['mid']
+            generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['mid'] * windOffshore['Volllaststunden [h]']['mid']
+            generation['Verbrauch'] = consumption['mid']
+            generation['E-Auto'] = eauto['E-Auto']['max']
+            generation['E-LKW'] = elkw['E-LKW']['mid']
+            generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
+            for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
+        case "light breeze":
+            generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['mid'] * photovoltaik['Globalstrahlung [Wh/m^2]']['min'] * 0.8
+            generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['mid'] * windOnshore['Volllaststunden [h]']['min']
+            generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['mid'] * windOffshore['Volllaststunden [h]']['min']
+            generation['Verbrauch'] = consumption['mid']
+            generation['E-Auto'] = eauto['E-Auto']['min']
+            generation['E-LKW'] = elkw['E-LKW']['min']
+            generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']
+            for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
+        case "confidence":
+            generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['max'] * photovoltaik['Globalstrahlung [Wh/m^2]']['max'] * 0.8
+            generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['max'] * windOnshore['Volllaststunden [h]']['max']
+            generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['max'] * windOffshore['Volllaststunden [h]']['max']
+            generation['Verbrauch'] = consumption['min']
+            generation['E-Auto'] = eauto['E-Auto']['max']
+            generation['E-LKW'] = elkw['E-LKW']['max']
+            generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
+            for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             
-    generation['Photovoltaik']*=0.8 # loss factor := 0.8
-    
     return simulation(dfList, 2030, loadProfile)
+            
+            
+    
+    # while True:
+    #     userInput = input("What scenario do you want, you may choose between 'min', 'mid' and 'max': ")
+    #     if userInput not in ['min', 'mid', 'max']:
+    #         print("\033[31mWrong input! Please enter 'min', 'mid', or 'max'.\033[0m")
+    #     else:
+    #         break
+
+    # choices = {
+    #     'Photovoltaik': photovoltaik,
+    #     'Wind Offshore': windOffshore,
+    #     'Wind Onshore': windOnshore,
+    #     'Verbrauch': consumption,
+    #     'Wärmepumpe' : waermepumpe,
+    #     'E-Auto' : eauto,
+    #     'E-LKW': elkw,
+    #     'Speicher' : speicher
+    # }
+    # global generation
+    # global storageUsage
+    # generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
+
+    # for category, subdict in choices.items():
+    #     if category == 'Speicher':
+            # storageUsage['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
+            # storageUsage['pump_load'] = speicher['Speicher'][userInput]['pump_load']
+            # storageUsage['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
+            # storageUsage['batt_load'] = speicher['Speicher'][userInput]['batt_load']
+        
+    #     elif category != 'Verbrauch':
+    #         for key, scenarios in subdict.items():
+    #             if userInput in scenarios:
+    #                 generation[category] *= scenarios[userInput]
+    #     elif category == 'Verbrauch':
+    #         if userInput in subdict:
+    #             generation[category] *= subdict[userInput]
+    #     else:
+    #         print("\033[31mError in szenario.\033[0m")
+
+    # generation['Photovoltaik']*=0.8 # loss factor := 0.8
+        
+    # return simulation(dfList, 2030, loadProfile)
+                
+        
+
+# def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
+#     choices = {
+#         'Photovoltaik': photovoltaik,
+#         'Wind Offshore': windOffshore,
+#         'Wind Onshore': windOnshore,
+#         'Verbrauch': consumption,
+#         'Wärmepumpe' : waermepumpe,
+#         'E-Auto' : eauto,
+#         'E-LKW' : elkw,
+#         'Speicher' : speicher
+#     }
+#     global generation
+#     global storageUsage
+#     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
+    
+#     for category, subdict in choices.items():
+#         if category == 'Speicher':
+#             print(f"Kategorie: {category}")
+#             while True:
+#                     userInput = input("Choose between 'max', 'mid' and 'min': ")
+#                     print()
+#                     if userInput not in ['max', 'mid', 'min']:
+#                         print("\033[31mWrong input! Please enter 'max', 'mid', or 'min'.\033[0m")
+#                     else:
+#                         storageUsage['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
+#                         storageUsage['pump_load'] = speicher['Speicher'][userInput]['pump_load']
+#                         storageUsage['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
+#                         storageUsage['batt_load'] = speicher['Speicher'][userInput]['batt_load']
+#                         break
+#         elif category != 'Verbrauch':
+#             for key, scenarios in subdict.items():
+#                 print(f"Kategorie: {category}")
+#                 print(f"\tUnterkategorie: {key}")
+#                 for scenario, value in scenarios.items():
+#                     print(f"\t\tSzenario: {scenario} -> {value}")
+#                 while True:
+#                     userInput = input("Choose between 'max', 'mid' and 'min': ")
+#                     print()
+#                     if userInput not in ['max', 'mid', 'min']:
+#                         print("\033[31mWrong input! Please enter 'max', 'mid', or 'min'.\033[0m")
+#                     else:
+#                         break
+#                 if category in generation:
+#                     generation[category] *= scenarios[userInput]
+#                 else:
+#                     print("\033[31mError category wasn't found in generation dictonary.\033[0m")
+#         elif category == 'Verbrauch':
+#             print(f"Kategorie: {category}[MWh]")
+#             for scenario, value in subdict.items():
+#                 print(f"\t\tSzenario: {scenario} -> {value}")
+#             while True:
+#                 userInput = input("Choose between 'max', 'mid' and 'min': ")
+#                 print()
+                
+#                 if userInput not in ['max', 'mid', 'min']:
+#                     print("\033[31mWrong input! Please enter 'max', 'mid', or 'min'.\033[0m")
+#                 else:
+#                     break
+#             generation[category] *= subdict[userInput]
+#         else:
+#             print("\033[31mError in szenario.\033[0m")
+            
+#     generation['Photovoltaik']*=0.8 # loss factor := 0.8
+    
+#     return simulation(dfList, 2030, loadProfile)
 
 
 
@@ -345,17 +413,17 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     df['Ungenutzte Energie'] = 0.0
 
     #Pumpspeicher-Parameter
-    pump_cap = round((speicher_use['pump_cap']-speicher['Speicher']['worst']['pump_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['pump_cap']),2)
+    pump_cap = round((storageUsage['pump_cap'] - storage['Speicher']['min']['pump_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['pump_cap']),2)
     pump_eff = 0.80
     pump_stor = 0.0
-    pump_load = round((speicher_use['pump_load']-speicher['Speicher']['worst']['pump_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['pump_load']),2)
+    pump_load = round((storageUsage['pump_load'] - storage['Speicher']['min']['pump_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['pump_load']),2)
     pump_unload = pump_load
 
     #Batteriespeicher-Parameter
-    batt_cap = round((speicher_use['batt_cap']-speicher['Speicher']['worst']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['batt_cap']),2)
+    batt_cap = round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2)
     batt_eff = 0.95
     batt_stor = 0.0
-    batt_load = round((speicher_use['batt_load']-speicher['Speicher']['worst']['batt_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + speicher['Speicher']['worst']['batt_load']),2)
+    batt_load = round((storageUsage['batt_load'] - storage['Speicher']['min']['batt_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_load']),2)
     batt_unload = pump_load
 
     pump = []
