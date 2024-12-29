@@ -84,8 +84,8 @@ def readLoadProfile() -> dict:
             df[column] /= 1000
 
         df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
-        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']*22
-        
+        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']
+        # Spalten umbenennen
         df.rename(
             columns = {
                 'Waermepumpe[in kWh]': 'Wärmepumpe',
