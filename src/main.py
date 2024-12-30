@@ -50,9 +50,9 @@ def main():
             dfList.append(future.result())
             
     # List for simulation
-    simulationList = list()
+    simulationDict = dict[str, list]
     # List for szenarios
-    szenarioList: list[dict] = list()
+    szenarioDict: dict[str, list] = dict()
     
     # Menu
     print("\033[1mSimulationtool (Start: 2023)\033[0m")
@@ -64,40 +64,57 @@ def main():
                 print("Program will be terminated.")
                 break
             case "szenarios":
-                simulationList = simulation.scenarios(dfList, loadProfile)
+                simulationDict = simulation.scenarios(dfList, loadProfile)
+                key = next(iter(simulationDict.keys()))
+                szenarioDict[key] = simulationDict[key]
             # case "szenario":
-            #     simulationList = simulation.ownScenario(dfList, loadProfile)
-            #     # szenarioList.append({"TEST": simulationList})
+            #     simulationDict = simulation.ownScenario(dfList, loadProfile)
+            #     # szenarioDict.append({"TEST": simulationDict})
             case "visualize":
-                visualize(simulationList)
-            case "excel":
-                if len(szenarioList) > 1:
+                visualize(simulationDict)
+                if len(szenarioDict) > 1:
                     while True:
-                        for currentDict in szenarioList:
-                            print(f"- {currentDict}")
+                        for key in szenarioDict.keys():
+                            print(f"- {key}")
                         userInput = input("Choose your szenario: ")
-                        if userInput not in list(szenarioList.keys()):
+                        if userInput not in szenarioDict:
                             print("\033[31mWrong input!\033[0m")
                         else:
+                            visualize({userInput: szenarioDict[userInput]})
+                            data.writeCSV({userInput: szenarioDict[userInput]})
                             break
-                    data.writeExcel(szenarioList[userInput])
-                elif simulationList:
-                    data.writeExcel(simulationList)
+                elif simulationDict:
+                    visualize(simulationDict)
+                else:
+                    print("\033[31mNo simulation has been made!\033[0m")
+            case "excel":
+                if len(szenarioDict) > 1:
+                    while True:
+                        for key in szenarioDict.keys():
+                            print(f"- {key}")
+                        userInput = input("Choose your szenario: ")
+                        if userInput not in szenarioDict:
+                            print("\033[31mWrong input!\033[0m")
+                        else:
+                            data.writeExcel({userInput: szenarioDict[userInput]})
+                            break
+                elif simulationDict:
+                    data.writeExcel(simulationDict)
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "csv":
-                if len(szenarioList) > 1:
+                if len(szenarioDict) > 1:
                     while True:
-                        for currentDict in szenarioList:
-                            print(f"- {currentDict}")
+                        for key in szenarioDict.keys():
+                            print(f"- {key}")
                         userInput = input("Choose your szenario: ")
-                        if userInput not in list(szenarioList.keys()):
+                        if userInput not in szenarioDict:
                             print("\033[31mWrong input!\033[0m")
                         else:
+                            data.writeCSV({userInput: szenarioDict[userInput]})
                             break
-                    data.writeCSV(szenarioList[userInput])
-                elif simulationList:
-                    data.writeCSV(simulationList)
+                elif simulationDict:
+                    data.writeCSV(simulationDict)
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "help":
@@ -161,12 +178,15 @@ def clearScreen() -> None:
 
 #_______________________________________________________________________________________________________________________________________________________________
 #Visualizations
-def visualize(simulationList):
+def visualize(simulationDict: dict[str, list]):
+    key = str(next(iter(simulationDict)))
+    keyStr = str(key)
+    dfList = list(simulationDict[key])
 
     while True:
         visualizationYear = input("Year to visualize: ")
         if visualizationYear.isdigit():
-            for df in simulationList:
+            for df in dfList:
                 if int(visualizationYear) == int(df['Datum von'].dt.year.iloc[0]):
                     dfv = df
             break
@@ -175,14 +195,14 @@ def visualize(simulationList):
 
 
     dfv = data.addInformation(dfv)
-    graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
-    graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
-    graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
-    #graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
-    graphics.plot_energy_data_from_df(dfv, 'Stromverbrauch und Produktion '+ visualizationYear)
-    clearScreen()
+    # graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
+    # graphics.plotHistogramPercent(dfv, 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
+    # graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
+    # #graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
+    # graphics.plot_energy_data_from_df(dfv, 'Stromverbrauch und Produktion '+ visualizationYear)
+    # clearScreen()
 
-    graphics.aggregate_and_plot(simulationList)
+    graphics.aggregate_and_plot(dfList, keyStr)
 
 
 def plot_data(dfe, dfv, time):

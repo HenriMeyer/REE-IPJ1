@@ -191,7 +191,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> li
             for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                 storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             
-    return simulation(dfList, 2030, loadProfile)
+    return simulation(dfList, 2030, loadProfile, userInput)
             
             
     
@@ -307,7 +307,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> li
 
 
 
-def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
+def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame], nameSzenario: str) -> dict[str, list]:
     dfList = list()
     # Indices for list
     leapYear = [1,5]
@@ -332,8 +332,10 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
             futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear))
         for future in futures:
             dfList.append(future.result())
-
-    return insertionSort(dfList)
+            
+    dfDict = dict()
+    dfDict[nameSzenario] = insertionSort(dfList)
+    return dfDict
 
 def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, loadProfile: pd.DataFrame) -> pd.DataFrame:
     dfCurrent = dfOriginal.copy()
@@ -479,3 +481,8 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     ]
     df = df[new_order]
     return df
+
+# def howMuchStorageNeed(szenarioList/szenario: pd.DataFrame) -> None/np.float64:
+    
+# def howMuchCost(szenarioList: list[dict]) -> None/np.float64:
+    
