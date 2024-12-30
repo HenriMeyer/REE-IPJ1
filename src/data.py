@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -26,12 +27,12 @@ def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
     try:
         dfUse = pd.read_csv(
             pathUse,
-            sep=';',
-            decimal=',',
-            thousands='.',
-            na_values=['-'],
-            parse_dates=[0,1],
-            dayfirst=True
+            sep = ';',
+            decimal = ',',
+            thousands = '.',
+            na_values = ['-'],
+            parse_dates = [0,1],
+            dayfirst = True
         )
     except FileNotFoundError:
         print(f"File '{filenameUse}' has not been found at path: {pathUse}")
@@ -84,8 +85,8 @@ def readLoadProfile() -> dict:
             df[column] /= 1000
 
         df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
-        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']*22
-        
+        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']
+        # Spalten umbenennen
         df.rename(
             columns = {
                 'Waermepumpe[in kWh]': 'Wärmepumpe',
@@ -131,28 +132,37 @@ def countPercentageRenewableExclude(df) -> list:
     return vector.tolist()
 
 
-# Append to CSV
-def writeCSV(dfList: list) -> None:
+# Write to CSV
+def writeCSV(dfDict: dict) -> None:
     print("Writing data to csv...")
-    folder = "../output/CSV/Simulation"
+    key = str(next(iter(dfDict)))
+    keyStr = str(key)
+    folder = "../output/" + keyStr +"/CSV"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     with ThreadPoolExecutor() as executor:
         futures = []
-        for df in dfList:
-            csvFilename = folder + str(df['Datum von'].dt.year.iloc[0]) + ".csv"
-            futures.append(executor.submit(df.to_csv,csvFilename, index=False, sep=";"))
+        for df in dfDict[key]:
+            csvFilename = f"{folder}/{str(df['Datum von'].dt.year.iloc[0])}.csv"
+            futures.append(executor.submit(df.to_csv, csvFilename, index = False, sep = ";"))
         for future in futures:
             future.result()
-    print(f"CSV-files have been created succesfully ('{folder}')")  
+    print(f"CSV-files have been created succesfully ('{folder}')")
     
-# Write simulation to excel
-def writeExcel(dfList: pd.DataFrame) -> None:
+# Write to excel
+def writeExcel(dfDict: dict) -> None:
     print("Writing data to excel...")
-    excelFilename = "../output/Excel/Simulation.xlsx"
+    key = next(iter(dfDict))
+    keyStr = str(key)
+    folder = "../output/" + keyStr + "/Excel"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    excelFilename = folder + "/Simulation.xlsx"
     with pd.ExcelWriter(excelFilename, engine="openpyxl") as writer:
-        for df in dfList:
-            df.to_excel(writer, sheet_name=str(df['Datum von'].dt.year.iloc[0]), index=False, header=True)
+        for df in dfDict[key]:
+            df.to_excel(writer, sheet_name=str(df['Datum von'].dt.year.iloc[0]), index = False, header = True)
     print(f"Die Excel-Datei '{excelFilename}' wurde erfolgreich erstellt.")
-
+    
 # Sum of one column
 def sumColumn(df, columnName: str) -> np.float64:
     return df.loc[:,columnName].sum(axis=0)

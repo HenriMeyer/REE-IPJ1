@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
+import os
 
 
 #functions for plotting
@@ -214,10 +215,12 @@ def plot_energy_data_from_df(df, filename):
     #plt.show()
 
 
-def aggregate_and_plot(dataframes: list[pd.DataFrame]):
+def aggregate_and_plot(dataframes: list[pd.DataFrame], szenarioName: str):
+    folder = "../output/" + szenarioName + "/PNG"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     column_to_sum = input("Welche Spalte soll summiert werden? Bitte Spaltennamen eingeben: ")
-    path = f"../output/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
-    
+    path = f"folder/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
     sums = []
     sums2 = []
     percentages = []

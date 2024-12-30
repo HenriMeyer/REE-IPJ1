@@ -4,13 +4,9 @@ ver | findstr /i "Windows" > nul
 if %errorlevel% == 0 (
     echo Running on Windows...
     mkdir "output"
-    mkdir "output\Excel"
-    mkdir "output\CSV"
 ) else (
     echo Running on macOS/Linux...
     bash -c "mkdir -p output"
-    bash -c "mkdir -p output/CSV"
-    bash -c "mkdir -p output/Excel"
 )
 
 if not exist "venv" (
