@@ -90,14 +90,29 @@ def main():
             case "excel":
                 if len(szenarioDict) > 1:
                     while True:
-                        for key in szenarioDict.keys():
-                            print(f"- {key}")
-                        userInput = input("Choose your szenario: ")
-                        if userInput not in szenarioDict:
-                            print("\033[31mWrong input!\033[0m")
-                        else:
-                            data.writeExcel({userInput: szenarioDict[userInput]})
+                        printAll = input("Do you want all szenarios to be written in excel? (y/n) ").lower()
+                        if printAll == 'y':
+                            with ThreadPoolExecutor() as executor:
+                                futures = []
+                                for key in szenarioDict.keys():
+                                    futures.append(executor.submit(data.writeExcel, {key: szenarioDict[key]}))
+                                for future in futures:
+                                    future.result()
                             break
+                        elif printAll == 'n':
+                            break
+                        else:
+                            print("\033[31mWrong input!\033[0m")
+                    if printAll == 'n':
+                        while True:
+                            for key in szenarioDict.keys():
+                                print(f"- {key}")
+                            userInput = input("Choose your szenario: ")
+                            if userInput not in szenarioDict:
+                                print("\033[31mWrong input!\033[0m")
+                            else:
+                                data.writeExcel({userInput: szenarioDict[userInput]})
+                                break
                 elif simulationDict:
                     data.writeExcel(simulationDict)
                 else:
@@ -105,14 +120,29 @@ def main():
             case "csv":
                 if len(szenarioDict) > 1:
                     while True:
-                        for key in szenarioDict.keys():
-                            print(f"- {key}")
-                        userInput = input("Choose your szenario: ")
-                        if userInput not in szenarioDict:
-                            print("\033[31mWrong input!\033[0m")
-                        else:
-                            data.writeCSV({userInput: szenarioDict[userInput]})
+                        printAll = input("Do you want all szenarios to be written in csv? (y/n) ").lower()
+                        if printAll == 'y':
+                            with ThreadPoolExecutor() as executor:
+                                futures = []
+                                for key in szenarioDict.keys():
+                                    futures.append(executor.submit(data.writeCSV, {key: szenarioDict[key]}))
+                                for future in futures:
+                                    future.result()
                             break
+                        elif printAll == 'n':
+                            break
+                        else:
+                            print("\033[31mWrong input!\033[0m")
+                    if printAll == 'n':
+                        while True:
+                            for key in szenarioDict.keys():
+                                print(f"- {key}")
+                            userInput = input("Choose your szenario: ")
+                            if userInput not in szenarioDict:
+                                print("\033[31mWrong input!\033[0m")
+                            else:
+                                data.writeCSV({userInput: szenarioDict[userInput]})
+                                break
                 elif simulationDict:
                     data.writeCSV(simulationDict)
                 else:
