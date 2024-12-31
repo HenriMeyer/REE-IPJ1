@@ -49,8 +49,6 @@ def main():
         for future in futures:
             dfList.append(future.result())
             
-    # List for simulation
-    simulationDict = dict[str, list]
     # List for szenarios
     szenarioDict: dict[str, list] = dict()
     
@@ -64,15 +62,12 @@ def main():
                 print("Program will be terminated.")
                 break
             case "szenarios":
-                simulationDict = simulation.scenarios(dfList, loadProfile)
-                key = next(iter(simulationDict.keys()))
-                szenarioDict[key] = simulationDict[key]
+                szenarioDict.update(simulation.scenarios(dfList, loadProfile))
             # case "szenario":
             #     simulationDict = simulation.ownScenario(dfList, loadProfile)
             #     # szenarioDict.append({"TEST": simulationDict})
             case "visualize":
-                visualize(simulationDict)
-                if len(szenarioDict) > 1:
+                if len(szenarioDict) > 0:
                     while True:
                         for key in szenarioDict.keys():
                             print(f"- {key}")
@@ -81,14 +76,11 @@ def main():
                             print("\033[31mWrong input!\033[0m")
                         else:
                             visualize({userInput: szenarioDict[userInput]})
-                            data.writeCSV({userInput: szenarioDict[userInput]})
                             break
-                elif simulationDict:
-                    visualize(simulationDict)
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "excel":
-                if len(szenarioDict) > 1:
+                if len(szenarioDict) > 0:
                     while True:
                         printAll = input("Do you want all szenarios to be written in excel? (y/n) ").lower()
                         if printAll == 'y':
@@ -113,12 +105,10 @@ def main():
                             else:
                                 data.writeExcel({userInput: szenarioDict[userInput]})
                                 break
-                elif simulationDict:
-                    data.writeExcel(simulationDict)
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "csv":
-                if len(szenarioDict) > 1:
+                if len(szenarioDict) > 0:
                     while True:
                         printAll = input("Do you want all szenarios to be written in csv? (y/n) ").lower()
                         if printAll == 'y':
@@ -143,8 +133,6 @@ def main():
                             else:
                                 data.writeCSV({userInput: szenarioDict[userInput]})
                                 break
-                elif simulationDict:
-                    data.writeCSV(simulationDict)
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "help":
