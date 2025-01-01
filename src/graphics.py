@@ -220,7 +220,7 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], szenarioName: str):
     if not os.path.exists(folder):
         os.makedirs(folder)
     column_to_sum = input("Welche Spalte soll summiert werden? Bitte Spaltennamen eingeben: ")
-    path = f"folder/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
+    path = f"{folder}/{column_to_sum}_im_Vergleich_zum_Verbrauch.png"
     sums = []
     sums2 = []
     percentages = []
@@ -274,4 +274,3 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], szenarioName: str):
 
     plt.tight_layout()
     plt.savefig(path, format='png', dpi=300)
-    plt.show()

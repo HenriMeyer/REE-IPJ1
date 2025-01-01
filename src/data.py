@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from concurrent.futures import ThreadPoolExecutor
+pd.options.mode.copy_on_write = True
 
 
 # Get data and input is filename of the source, don't forget '.csv'
