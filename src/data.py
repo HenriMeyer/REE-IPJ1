@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from concurrent.futures import ThreadPoolExecutor
+pd.options.mode.copy_on_write = True
 
 
 # Get data and input is filename of the source, don't forget '.csv'
@@ -100,7 +101,7 @@ def readLoadProfile() -> dict:
 
 # Add further information
 def addInformation(df) -> pd.DataFrame:
-    df = formatTime(df)
+    #df = formatTime(df)
     df = addPercentageRenewableLast(df)
     return df
 
@@ -115,6 +116,8 @@ def formatTime(df) -> pd.DataFrame:
     return df
 
 def addPercentageRenewableLast(df) -> pd.DataFrame:
+    df['Konventionell'] = np.maximum(df['Verbrauch']-df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
+        'Batteriespeicher Produktion']].sum(axis=1), 0)
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
     return df

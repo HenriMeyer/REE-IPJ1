@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
 START_YEAR = 2023
@@ -556,16 +557,22 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     df['Pumpspeicher Produktion'] = pump_prod
     df['Batteriespeicher Produktion'] = batt_prod
     df['Ungenutzte Energie'] = unused_en
-
+    df['Konventionell'] = np.maximum(df['Verbrauch']-df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
+        'Batteriespeicher Produktion']].sum(axis=1), 0)
+    df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
+        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
+    
     new_order = [
         'Datum von', 'Datum bis',
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher Produktion',
         'Batteriespeicher Produktion','Braunkohle', 'Steinkohle', 'Erdgas',
         'Sonstige Konventionelle','Wärmepumpe','E-Auto', 'E-LKW', 'Verbrauch',
-        'Batteriespeicher', 'Pumpspeicher', 'Überschuss', 'Ungenutzte Energie'
+        'Batteriespeicher', 'Pumpspeicher', 'Überschuss', 'Ungenutzte Energie',
+        'Konventionell', 'Anteil Erneuerbar [%]'
     ]
     df = df[new_order]
+    
     return df
 
 # def howMuchStorageNeed(szenarioList/szenario: pd.DataFrame) -> None/np.float64:
