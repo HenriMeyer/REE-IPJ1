@@ -81,42 +81,32 @@ def readLoadProfile() -> dict:
         # Remove timestamps
         df.drop(columns=['Jahr_von', 'Zeit_von'], inplace=True)
 
-        # Calculation
-        for column in ['Waermepumpe[in kWh]', 'Elektroauto[Tagesnormiert]']:
+        # 'Wärmepumpe' normalization
+        df['Waermepumpe[in kWh]'] /= df['Waermepumpe[in kWh]'].sum()
+
+        # Calculation of columns for later use in MWh
+        for column in ['Waermepumpe[in kWh]', 'Elektroauto[Tagesnormiert]', 'ELKW[Tagesnormiert]']:
             df[column] = pd.to_numeric(df[column], errors='coerce')
             df[column] /= 1000
 
-        df['Elektroauto[Tagesnormiert]'] = df['Elektroauto[Tagesnormiert]'] * 6.14
-        df['E-LKW'] = df['Elektroauto[Tagesnormiert]']
-        # Spalten umbenennen
+        # Renaming columns
         df.rename(
             columns = {
                 'Waermepumpe[in kWh]': 'Wärmepumpe',
-                'Elektroauto[Tagesnormiert]': 'E-Auto'
+                'Elektroauto[Tagesnormiert]': 'E-Auto',
+                'ELKW[Tagesnormiert]': 'E-LKW'
             },
             inplace = True
         )
-        df['Wärmepumpe'] = df['Wärmepumpe']/3*5
+
+        # Average consumption per day and unit
+        df['E-Auto'] *= 6.14
+        df['E-LKW'] *= 65.75
 
     return {'leap': dfleap, 'normal': dfnormal}
 
 # Add further information
 def addInformation(df) -> pd.DataFrame:
-    #df = formatTime(df)
-    df = addPercentageRenewableLast(df)
-    return df
-
-def formatTime(df) -> pd.DataFrame:
-    # Extract year, month, day, hour, minute from 'Datum von'
-    df['Jahr'] = df['Datum von'].dt.year
-    df['Monat'] = df['Datum von'].dt.month
-    df['Tag'] = df['Datum von'].dt.day
-    df['Uhrzeit'] = df['Datum von'].dt.time
-    df['Monat Tag'] = df['Datum von'].dt.strftime('%m %d')
-    
-    return df
-
-def addPercentageRenewableLast(df) -> pd.DataFrame:
     df['Konventionell'] = np.maximum(df['Verbrauch']-df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1), 0)
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
