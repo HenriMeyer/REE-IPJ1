@@ -65,9 +65,9 @@ windOnshore = {
 }
 
 consumption = {
-    'min' : 646198000,#-95250000 von E-Auto/Wärmepumpe -33552000 E-LKW
+    'max' : 646198000,#-95250000 von E-Auto/Wärmepumpe -33552000 E-LKW
     'mid' : 597735500,#-69312500 von E-Auto/Wärmepumpe -17952000 E-LKW
-    'max' : 557328000#-30200000 von E-Auto/Wärmepumpe -2352000 E-LKW
+    'min' : 557328000#-30200000 von E-Auto/Wärmepumpe -2352000 E-LKW
 }
 
 waermepumpe =  {
@@ -132,7 +132,7 @@ storageUsage = {
 
 
 def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
-    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence", "cold winter"]
+    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence", "cold winter", "smard"]
 
     while True:
         print(f"Available scenarios:")
@@ -210,7 +210,22 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['min']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
-            # case "SMARD extrapolation":
+            case "smard":
+                startSMARD = int(dfList[0]['Datum von'].dt.year.iloc[0])
+                for column in dfList[0].columns:
+                    if column in ['Datum von', 'Datum bis']:
+                        continue
+                    buffer = list()
+                    for i in range(len(dfList) - 1):
+                        buffer.append(dfList[i + 1][column].sum() - dfList[i][column].sum())
+                    generation[column] = dfList[0][column].sum() + sum(buffer) / len(buffer) * (START_YEAR - startSMARD)
+                    print(column + ": " + str(generation[column]))
+                generation['E-Auto'] = eauto['E-Auto']['mid']
+                generation['E-LKW'] = elkw['E-LKW']['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['min']
+                for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                    storageUsage[storageItem] = storage['Speicher']['mid'][storageItem]
+                    
 
     if userInput == "all":
         with ThreadPoolExecutor() as executor:
