@@ -55,7 +55,7 @@ def main():
     szenarioDict: dict[str, list] = dict()
     
     # Menu
-    print("\033[1mSimulationtool (Start: 2023)\033[0m")
+    print("\033[1mSimulationtool (Start: 2024)\033[0m")
     printCommands()
     while True:
         userInput = input("Write your commands (or 'quit' to exit the program): ")
@@ -69,7 +69,7 @@ def main():
             #     simulationDict = simulation.ownScenario(dfList, loadProfile)
             #     # szenarioDict.append({"TEST": simulationDict})
             case "visualize":
-                if len(szenarioDict) > 0:
+                if len(szenarioDict) > 1:
                     while True:
                         for key in szenarioDict.keys():
                             print(f"- {key}")
@@ -79,6 +79,9 @@ def main():
                         else:
                             graphics.visualize({userInput: szenarioDict[userInput]})
                             break
+                elif szenarioDict:
+                    key = next(iter(szenarioDict))
+                    graphics.visualize({key: szenarioDict[key]})
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "excel":
