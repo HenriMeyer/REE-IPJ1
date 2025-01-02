@@ -7,7 +7,7 @@ START_YEAR = 2023
 COAL_EXIT = 2038
 
 generation = {
-    'Biomasse': 37826000,
+    'Biomasse': 43431161,
     'Wasserkraft': 15000000,
     'Wind Offshore': 94620000,
     'Wind Onshore': 228060000,
@@ -17,7 +17,7 @@ generation = {
     'Steinkohle': 40000000,
     'Erdgas': 11250, # max power -> Regelbare Kraftwerke
     'Pumpspeicher': 10647000,
-    'Sonstige Konventionelle': 12000000,
+    'Sonstige Konventionelle': 11193660,
     'Wärmepumpe': 1,
     'E-Auto': 1,
     'E-LKW': 1,
@@ -132,7 +132,7 @@ storageUsage = {
 
 
 def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
-    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence"]
+    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence", "cold winter"]
 
     while True:
         print(f"Available scenarios:")
@@ -298,7 +298,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
 def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame], nameSzenario: str) -> dict[str, list]:
     dfList = list()
     # Indices for list
-    leapYear = [1,5]
+    leapYear = [1,5,9]
     commonYear = [0,2,3,4,6,7,8]
     
     print("Running the simulation...")
@@ -319,13 +319,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
         for df in dfList:
             futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear))
         for future in futures:
-            dfList.append(future.result())
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for df in dfList:
-            futures.append(executor.submit(controllablePowerPlants, df))
-        for future in futures:
-            dfList.append(future.result())        
+            dfList.append(future.result()) 
     dfDict = dict()
     dfDict[nameSzenario] = insertionSort(dfList)
     return dfDict
@@ -394,17 +388,6 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
         dfList[j + 1] = currentDf
 
     return dfList.copy()
-
-
-def controllablePowerPlants(df: pd.DataFrame) -> pd.DataFrame:
-    df['Regelbare Kraftwerke'] = 0
-    for i in range(len(df)):
-        if df.at[i, 'Pumpspeicher'] == 0 and df.at[i, 'Batteriespeicher'] == 0:
-            if abs(df.at[i, 'Überschuss']) <= generation['Erdgas']:
-                df.at[i, 'Regelbare Kraftwerke'] = round(float(abs(df.at[i, 'Überschuss'])), 2)
-            else:
-                df.at[i, 'Regelbare Kraftwerke'] = round(generation['Erdgas'], 2)
-    return df.copy()
 
 
 def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
@@ -478,14 +461,12 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     df['Konventionell'] = np.maximum(df['Verbrauch']-df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1), 0)
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
-        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
+        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100)
     
-
-    # Runde die Werte in den relevanten Spalten
     columns_to_round = [
         'Pumpspeicher', 'Batteriespeicher',
         'Pumpspeicher Produktion', 'Batteriespeicher Produktion',
-        'Überschuss', 'Ungenutzte Energie'
+        'Überschuss', 'Ungenutzte Energie', 'Konventionell', 'Anteil Erneuerbar [%]'
     ]
     df[columns_to_round] = df[columns_to_round].round(2)
     
