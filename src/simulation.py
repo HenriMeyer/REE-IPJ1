@@ -65,9 +65,9 @@ windOnshore = {
 }
 
 consumption = {
-    'min' : 679750000,#-95250000 von E-Auto/Wärmepumpe
-    'mid' : 615687500,#-69312500 von E-Auto/Wärmepumpe
-    'max' : 559680000#-30200000 von E-Auto/Wärmepumpe
+    'min' : 646198000,#-95250000 von E-Auto/Wärmepumpe -33552000 E-LKW
+    'mid' : 597735500,#-69312500 von E-Auto/Wärmepumpe -17952000 E-LKW
+    'max' : 557328000#-30200000 von E-Auto/Wärmepumpe -2352000 E-LKW
 }
 
 waermepumpe =  {
@@ -75,6 +75,11 @@ waermepumpe =  {
         'min' : 0,
         'mid' : 3900000,
         'max' : 4400000
+    },
+    'Verbrauch in [kWh]' : {
+        'min' : 5130,
+        'mid' : 6290,
+        'max' : 7850
     }
 }
 eauto = {
@@ -91,9 +96,9 @@ start = {
 }
 elkw = {
     'E-LKW' : {
-        'min' : 2280000,
-        'mid' :17100000,
-        'max' : 31920000
+        'min' : 98000,
+        'mid' : 748000,
+        'max' : 1398000
     }
 }
 storage = {
@@ -152,7 +157,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['mid']
                 generation['E-Auto'] = eauto['E-Auto']['min']
                 generation['E-LKW'] = elkw['E-LKW']['min']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']#*temp['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "imbalance":
@@ -162,7 +167,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['max']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['max']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']#*temp['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "no storage":
@@ -172,7 +177,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['mid']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['mid']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']#*temp['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "light breeze":
@@ -182,7 +187,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['mid']
                 generation['E-Auto'] = eauto['E-Auto']['mid']
                 generation['E-LKW'] = elkw['E-LKW']['mid']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']#*temp['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "confidence":
@@ -192,7 +197,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['min']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['max']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']#*temp['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
             case "cold winter":
@@ -202,7 +207,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['mid']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['max']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']#*temp['min']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['min']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
             # case "SMARD extrapolation":
@@ -347,7 +352,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         else:
             print(column + " wasn't simulated.")
 
-    dfCurrent['Verbrauch'] += dfCurrent['E-Auto'] + dfCurrent['Wärmepumpe']
+    dfCurrent['Verbrauch'] += dfCurrent['E-Auto'] + dfCurrent['Wärmepumpe'] + dfCurrent['E-LKW']
     dfCurrent['Verbrauch'] = dfCurrent['Verbrauch'].round(2)
     
     return dfCurrent.copy()
