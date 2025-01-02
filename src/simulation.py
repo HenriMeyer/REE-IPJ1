@@ -7,7 +7,7 @@ START_YEAR = 2023
 COAL_EXIT = 2038
 
 generation = {
-    'Biomasse': 37826000,
+    'Biomasse': 43431161,
     'Wasserkraft': 15000000,
     'Wind Offshore': 94620000,
     'Wind Onshore': 228060000,
@@ -15,9 +15,9 @@ generation = {
     'Sonstige Erneuerbare': 1100000,
     'Braunkohle': 78000000,
     'Steinkohle': 40000000,
-    'Erdgas': 50143000,
+    'Erdgas': 11250, # max power -> Regelbare Kraftwerke
     'Pumpspeicher': 10647000,
-    'Sonstige Konventionelle': 12000000,
+    'Sonstige Konventionelle': 11193660,
     'Wärmepumpe': 1,
     'E-Auto': 1,
     'E-LKW': 1,
@@ -65,9 +65,9 @@ windOnshore = {
 }
 
 consumption = {
-    'min' : 679750000,#-95250000 von E-Auto/Wärmepumpe
-    'mid' : 615687500,#-69312500 von E-Auto/Wärmepumpe
-    'max' : 559680000#-30200000 von E-Auto/Wärmepumpe
+    'min' : 646198000,#-95250000 von E-Auto/Wärmepumpe -33552000 E-LKW
+    'mid' : 597735500,#-69312500 von E-Auto/Wärmepumpe -17952000 E-LKW
+    'max' : 557328000#-30200000 von E-Auto/Wärmepumpe -2352000 E-LKW
 }
 
 waermepumpe =  {
@@ -75,6 +75,11 @@ waermepumpe =  {
         'min' : 0,
         'mid' : 3900000,
         'max' : 4400000
+    },
+    'Verbrauch in [kWh]' : {
+        'min' : 5130,
+        'mid' : 6290,
+        'max' : 7850
     }
 }
 eauto = {
@@ -91,9 +96,9 @@ start = {
 }
 elkw = {
     'E-LKW' : {
-        'min' : 2280000,
-        'mid' :17100000,
-        'max' : 31920000
+        'min' : 98000,
+        'mid' : 748000,
+        'max' : 1398000
     }
 }
 storage = {
@@ -127,7 +132,7 @@ storageUsage = {
 
 
 def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
-    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence"]
+    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence", "cold winter"]
 
     while True:
         print(f"Available scenarios:")
@@ -152,7 +157,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['mid']
                 generation['E-Auto'] = eauto['E-Auto']['min']
                 generation['E-LKW'] = elkw['E-LKW']['min']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "imbalance":
@@ -162,7 +167,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['max']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['max']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "no storage":
@@ -172,7 +177,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['mid']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['mid']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "light breeze":
@@ -180,9 +185,9 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['mid'] * windOnshore['Volllaststunden [h]']['min']
                 generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['mid'] * windOffshore['Volllaststunden [h]']['min']
                 generation['Verbrauch'] = consumption['mid']
-                generation['E-Auto'] = eauto['E-Auto']['min']
-                generation['E-LKW'] = elkw['E-LKW']['min']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']
+                generation['E-Auto'] = eauto['E-Auto']['mid']
+                generation['E-LKW'] = elkw['E-LKW']['mid']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
             case "confidence":
@@ -192,9 +197,19 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Verbrauch'] = consumption['min']
                 generation['E-Auto'] = eauto['E-Auto']['max']
                 generation['E-LKW'] = elkw['E-LKW']['max']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['mid']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
-                    storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
+                    storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
+            case "cold winter":
+                generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['max'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
+                generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['max'] * windOnshore['Volllaststunden [h]']['mid']
+                generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['max'] * windOffshore['Volllaststunden [h]']['mid']
+                generation['Verbrauch'] = consumption['mid']
+                generation['E-Auto'] = eauto['E-Auto']['max']
+                generation['E-LKW'] = elkw['E-LKW']['max']
+                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['min']
+                for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                    storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
 
     if userInput == "all":
         with ThreadPoolExecutor() as executor:
@@ -210,121 +225,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
         return szenarioDict
     else:
         defineSzenario(userInput)
-        return simulation(dfList, 2030, loadProfile, userInput)
-
-# def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
-#     choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence"]
-    
-#     while True:
-#         print(f"Available scenarios:")
-#         for szenario in choicesSzenarios:
-#             print(f"- {szenario}")
-#         userInput = input("Type in one of the mentioned szenarios: ")
-#         if userInput not in choicesSzenarios:
-#             print("\033[31mWrong input!\033[0m")
-#         else:
-#             break
-    
-#     global generation
-#     match userInput.lower():
-#         case "retention":
-#             generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['min'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
-#             generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['min'] * windOnshore['Volllaststunden [h]']['mid']
-#             generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['min'] * windOffshore['Volllaststunden [h]']['mid']
-#             generation['Verbrauch'] = consumption['mid']
-#             generation['E-Auto'] = eauto['E-Auto']['min']
-#             generation['E-LKW'] = elkw['E-LKW']['min']
-#             generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']
-#             for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
-#                 storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
-#         case "imbalance":
-#             generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['min'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
-#             generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['min'] * windOnshore['Volllaststunden [h]']['mid']
-#             generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['min'] * windOffshore['Volllaststunden [h]']['mid']
-#             generation['Verbrauch'] = consumption['max']
-#             generation['E-Auto'] = eauto['E-Auto']['max']
-#             generation['E-LKW'] = elkw['E-LKW']['max']
-#             generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
-#             for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
-#                 storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
-#         case "no storage":
-#             generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['mid'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
-#             generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['mid'] * windOnshore['Volllaststunden [h]']['mid']
-#             generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['mid'] * windOffshore['Volllaststunden [h]']['mid']
-#             generation['Verbrauch'] = consumption['mid']
-#             generation['E-Auto'] = eauto['E-Auto']['max']
-#             generation['E-LKW'] = elkw['E-LKW']['mid']
-#             generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
-#             for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
-#                 storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
-#         case "light breeze":
-#             generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['mid'] * photovoltaik['Globalstrahlung [Wh/m^2]']['min'] * 0.8
-#             generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['mid'] * windOnshore['Volllaststunden [h]']['min']
-#             generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['mid'] * windOffshore['Volllaststunden [h]']['min']
-#             generation['Verbrauch'] = consumption['mid']
-#             generation['E-Auto'] = eauto['E-Auto']['min']
-#             generation['E-LKW'] = elkw['E-LKW']['min']
-#             generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['mid']
-#             for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
-#                 storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
-#         case "confidence":
-#             generation['Photovoltaik'] = photovoltaik['Installierte Leistung [MW]']['max'] * photovoltaik['Globalstrahlung [Wh/m^2]']['max'] * 0.8
-#             generation['Wind Onshore'] = windOnshore['Installierte Leistung [MW]']['max'] * windOnshore['Volllaststunden [h]']['max']
-#             generation['Wind Offshore'] = windOffshore['Installierte Leistung [MW]']['max'] * windOffshore['Volllaststunden [h]']['max']
-#             generation['Verbrauch'] = consumption['min']
-#             generation['E-Auto'] = eauto['E-Auto']['max']
-#             generation['E-LKW'] = elkw['E-LKW']['max']
-#             generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']
-#             for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
-#                 storageUsage[storageItem] = storage['Speicher']['min'][storageItem]
-            
-#     return simulation(dfList, 2030, loadProfile, userInput)
-            
-            
-    
-    # while True:
-    #     userInput = input("What scenario do you want, you may choose between 'min', 'mid' and 'max': ")
-    #     if userInput not in ['min', 'mid', 'max']:
-    #         print("\033[31mWrong input! Please enter 'min', 'mid', or 'max'.\033[0m")
-    #     else:
-    #         break
-
-    # choices = {
-    #     'Photovoltaik': photovoltaik,
-    #     'Wind Offshore': windOffshore,
-    #     'Wind Onshore': windOnshore,
-    #     'Verbrauch': consumption,
-    #     'Wärmepumpe' : waermepumpe,
-    #     'E-Auto' : eauto,
-    #     'E-LKW': elkw,
-    #     'Speicher' : speicher
-    # }
-    # global generation
-    # global storageUsage
-    # generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
-
-    # for category, subdict in choices.items():
-    #     if category == 'Speicher':
-            # storageUsage['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
-            # storageUsage['pump_load'] = speicher['Speicher'][userInput]['pump_load']
-            # storageUsage['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
-            # storageUsage['batt_load'] = speicher['Speicher'][userInput]['batt_load']
-        
-    #     elif category != 'Verbrauch':
-    #         for key, scenarios in subdict.items():
-    #             if userInput in scenarios:
-    #                 generation[category] *= scenarios[userInput]
-    #     elif category == 'Verbrauch':
-    #         if userInput in subdict:
-    #             generation[category] *= subdict[userInput]
-    #     else:
-    #         print("\033[31mError in szenario.\033[0m")
-
-    # generation['Photovoltaik']*=0.8 # loss factor := 0.8
-        
-    # return simulation(dfList, 2030, loadProfile)
-                
-        
+        return simulation(dfList, 2030, loadProfile, userInput)    
 
 # def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
 #     choices = {
@@ -397,7 +298,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
 def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame], nameSzenario: str) -> dict[str, list]:
     dfList = list()
     # Indices for list
-    leapYear = [1,5]
+    leapYear = [1,5,9]
     commonYear = [0,2,3,4,6,7,8]
     
     print("Running the simulation...")
@@ -418,8 +319,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
         for df in dfList:
             futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear))
         for future in futures:
-            dfList.append(future.result())
-            
+            dfList.append(future.result()) 
     dfDict = dict()
     dfDict[nameSzenario] = insertionSort(dfList)
     return dfDict
@@ -451,7 +351,8 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         else:
             print(column + " wasn't simulated.")
 
-    dfCurrent['Verbrauch'] += dfCurrent['E-Auto'] + dfCurrent['Wärmepumpe']
+    dfCurrent['Verbrauch'] += dfCurrent['E-Auto'] + dfCurrent['Wärmepumpe'] + dfCurrent['E-LKW']
+    dfCurrent['Verbrauch'] = dfCurrent['Verbrauch'].round(2)
     
     return dfCurrent.copy()
 
@@ -560,7 +461,14 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     df['Konventionell'] = np.maximum(df['Verbrauch']-df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1), 0)
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
-        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100).round(2)
+        'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100)
+    
+    columns_to_round = [
+        'Pumpspeicher', 'Batteriespeicher',
+        'Pumpspeicher Produktion', 'Batteriespeicher Produktion',
+        'Überschuss', 'Ungenutzte Energie', 'Konventionell', 'Anteil Erneuerbar [%]'
+    ]
+    df[columns_to_round] = df[columns_to_round].round(2)
     
     new_order = [
         'Datum von', 'Datum bis',
@@ -575,7 +483,19 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     
     return df
 
-# def howMuchStorageNeed(szenarioList/szenario: pd.DataFrame) -> None/np.float64:
+def howMuchStorageNeed(szenarioName: str, simulationYears: list) -> float:
+    availableStorageYear = list()
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for df in range(simulationYears):
+            futures.append(executor.submit(calculationMinStorage, df))
+        for future in futures:
+            availableStorageYear.append(future.result())
     
+    return
+
+def calculationMinStorage(df: pd.DataFrame) -> float:
+    return
+
 # def howMuchCost(szenarioList: list[dict]) -> None/np.float64:
     

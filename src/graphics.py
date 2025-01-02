@@ -253,7 +253,8 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], folder: str):
     # Eingabe: Auswahl der darzustellenden Spalten
     available_columns = [
         'Verbrauch', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik',
-        'Pumpspeicher Produktion', 'Batteriespeicher Produktion', 'Konventionell', 'Ungenutzte Energie'
+        'Pumpspeicher Produktion', 'Batteriespeicher Produktion', 'Konventionell', 'Ungenutzte Energie',
+        'Wärmepumpe','E-Auto', 'E-LKW'
     ]
     print("Verfügbare Spalten:\n", ", ".join(available_columns))
     selected_columns = input("Welche Spalten möchten Sie darstellen? Geben Sie die Namen durch Komma getrennt ein: ").split(',')
