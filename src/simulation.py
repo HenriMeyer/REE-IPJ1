@@ -3,7 +3,7 @@ import random
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
-START_YEAR = 2023
+START_YEAR = 2024
 COAL_EXIT = 2038
 
 generation = {
@@ -205,6 +205,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']#*temp['min']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
+            # case "SMARD extrapolation":
 
     if userInput == "all":
         with ThreadPoolExecutor() as executor:
