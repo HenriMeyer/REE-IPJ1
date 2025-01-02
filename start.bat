@@ -27,6 +27,7 @@ cd src
 python main.py
 
 echo Deactivating virtual environment...
+cd..
 deactivate
 
 pause
