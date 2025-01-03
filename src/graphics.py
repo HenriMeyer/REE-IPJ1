@@ -40,7 +40,7 @@ def visualize_multiple(simulationDict: dict[str, list]):
         os.makedirs(folder)
     
     columns = [
-        'Konventionell', 'Verbrauch'
+        'Konventionell', 'Verbrauch', 'Price'
     ]
     combined_yearly_sums = {column: {} for column in columns}
     
@@ -55,6 +55,9 @@ def visualize_multiple(simulationDict: dict[str, list]):
                 combined_yearly_sums[column][year][scenario] = df[column].sum()/1e6
     
     for column in columns:
+        if column == 'Price':
+            plot_combined_yearly_price(combined_yearly_sums[column], folder, column)
+            continue
         plot_combined_yearly_sums(combined_yearly_sums[column], folder, column)
 
 def plot_combined_yearly_sums(combined_yearly_sums, folder, column):
@@ -78,7 +81,26 @@ def plot_combined_yearly_sums(combined_yearly_sums, folder, column):
     plt.savefig(path, format='png', dpi=300)
     plt.close()
 
+def plot_combined_yearly_price(combined_yearly_sums, folder, column):
+    years = sorted(combined_yearly_sums.keys())
+    scenarios = sorted(next(iter(combined_yearly_sums.values())).keys())
     
+    plt.figure(figsize=(12, 8))
+    
+    for scenario in scenarios:
+        sums = [combined_yearly_sums[year].get(scenario, 0)/1e3 for year in years]
+        plt.plot(years, sums, marker='o', linestyle='-', label=scenario)
+    
+    plt.xlabel('Year')
+    plt.ylabel(f'Gesamtkosten in Milliarden €')
+    plt.title(f'Gesamtkosten')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    
+    path = os.path.join(folder, f'{column}_summe_jährlich.png')
+    plt.savefig(path, format='png', dpi=300)
+    plt.close()
     
 #functions for plotting
 
