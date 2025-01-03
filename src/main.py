@@ -85,7 +85,7 @@ def main():
                                 break
                     elif szenarioDict:
                         key = next(iter(szenarioDict))
-                        graphics.visualize_multiple({key: szenarioDict[key]})
+                        graphics.visualize({key: szenarioDict[key]})
                     else:
                         print("\033[31mNo simulation has been made!\033[0m")
                 else:

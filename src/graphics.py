@@ -40,7 +40,7 @@ def visualize_multiple(simulationDict: dict[str, list]):
         os.makedirs(folder)
     
     columns = [
-        'Konventionell'
+        'Konventionell', 'Verbrauch'
     ]
     combined_yearly_sums = {column: {} for column in columns}
     
@@ -52,7 +52,7 @@ def visualize_multiple(simulationDict: dict[str, list]):
                     combined_yearly_sums[column][year] = {}
                 if scenario not in combined_yearly_sums[column][year]:
                     combined_yearly_sums[column][year][scenario] = 0
-                combined_yearly_sums[column][year][scenario] += df[column].sum()
+                combined_yearly_sums[column][year][scenario] = df[column].sum()/1e6
     
     for column in columns:
         plot_combined_yearly_sums(combined_yearly_sums[column], folder, column)
@@ -68,13 +68,13 @@ def plot_combined_yearly_sums(combined_yearly_sums, folder, column):
         plt.plot(years, sums, marker='o', linestyle='-', label=scenario)
     
     plt.xlabel('Year')
-    plt.ylabel(f'Sum of {column}')
-    plt.title(f'Yearly Sum of {column} for All Scenarios')
+    plt.ylabel(f'Summe von {column} in TWh')
+    plt.title(f'Jährliche Summen {column}')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     
-    path = os.path.join(folder, f'combined_{column}_yearly_sum.png')
+    path = os.path.join(folder, f'{column}_summe_jährlich.png')
     plt.savefig(path, format='png', dpi=300)
     plt.close()
 
