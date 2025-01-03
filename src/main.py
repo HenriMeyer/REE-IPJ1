@@ -55,7 +55,7 @@ def main():
     szenarioDict: dict[str, list] = dict()
     
     # Menu
-    print("\033[1mSimulationtool (Start: 2023)\033[0m")
+    print("\033[1mSimulationtool (Start: 2024)\033[0m")
     printCommands()
     while True:
         userInput = input("Write your commands (or 'quit' to exit the program): ")
