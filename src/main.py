@@ -69,19 +69,25 @@ def main():
             #     simulationDict = simulation.ownScenario(dfList, loadProfile)
             #     # szenarioDict.append({"TEST": simulationDict})
             case "visualize":
-                if len(szenarioDict) > 1:
-                    while True:
-                        for key in szenarioDict.keys():
-                            print(f"- {key}")
-                        userInput = input("Choose your szenario: ")
-                        if userInput not in szenarioDict:
-                            print("\033[31mWrong input!\033[0m")
-                        else:
-                            graphics.visualize({userInput: szenarioDict[userInput]})
-                            break
-                elif szenarioDict:
-                    key = next(iter(szenarioDict))
-                    graphics.visualize({key: szenarioDict[key]})
+                if len(szenarioDict) > 0:
+                    if len(szenarioDict) > 1:
+                        while True:
+                            for key in szenarioDict.keys():
+                                print(f"- {key}")
+                            userInput = input("Choose your szenario (or 'all' for all scenarios): ")
+                            if userInput == 'all':
+                                graphics.visualize_multiple(szenarioDict)
+                                break
+                            elif userInput not in szenarioDict:
+                                print("\033[31mWrong input!\033[0m")
+                            else:
+                                graphics.visualize({userInput: szenarioDict[userInput]})
+                                break
+                    elif szenarioDict:
+                        key = next(iter(szenarioDict))
+                        graphics.visualize({key: szenarioDict[key]})
+                    else:
+                        print("\033[31mNo simulation has been made!\033[0m")
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "excel":
