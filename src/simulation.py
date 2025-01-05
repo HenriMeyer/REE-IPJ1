@@ -179,7 +179,6 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                     'Wärmepumpe': waermepumpe['Wärmepumpe']['mid']
                 })
                 generation['Photovoltaik'] = install_values['Photovoltaik'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
-                print(generation['Photovoltaik'])
                 generation['Wind Onshore'] = install_values['Wind Onshore'] * windOnshore['Volllaststunden [h]']['mid']
                 generation['Wind Offshore'] = install_values['Wind Offshore'] * windOffshore['Volllaststunden [h]']['mid']
                 generation['Verbrauch'] = consumption['mid']
@@ -346,8 +345,6 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
     dfDict = dict()
     dfDict[nameSzenario] = insertionSort(dfList)
     
-    for key, dfList in dfDict.items():
-        howMuchStorageNeed(str(key), dfList[-1])
     return dfDict
 
 def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, loadProfile: pd.DataFrame, install_values: list) -> pd.DataFrame:
@@ -379,7 +376,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
 
     
     dfCurrent['Price'] = 0
-    dfCurrent.at[0, 'Price'] = sum((install_values[tech] - start[tech]) / (generationYear - START_YEAR) * (currentYear - START_YEAR) * price[tech] for tech in install_values)
+    dfCurrent.at[0, 'Price'] = int(sum((install_values[tech] - start[tech]) / (generationYear - START_YEAR) * (currentYear - START_YEAR) * price[tech] for tech in install_values))
 
     dfCurrent['Verbrauch'] += dfCurrent['E-Auto'] + dfCurrent['Wärmepumpe'] + dfCurrent['E-LKW']
     dfCurrent['Verbrauch'] = dfCurrent['Verbrauch'].round(2)
@@ -528,9 +525,6 @@ def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
         
         storageAvg = round(sum(storageList) / len(storageList), 2) if storageList else 0
         needStorageAvg = round(needStorage / len(storageList), 2)
-        
-        print(storageAvg)
-        print(needStorageAvg)
         
         if max(storageList) / len(storageList) < needStorageAvg:
             print(szenarioName + " doesn't have the capacity to become 80% renewable.")
