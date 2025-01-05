@@ -346,6 +346,8 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
     dfDict = dict()
     dfDict[nameSzenario] = insertionSort(dfList)
     
+    for key, dfList in dfDict.items():
+        howMuchStorageNeed(str(key), dfList[-1])
     return dfDict
 
 def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, loadProfile: pd.DataFrame, install_values: list) -> pd.DataFrame:
