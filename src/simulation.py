@@ -299,7 +299,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
             futures = []
             for scenario in choicesSzenarios:
                 defineSzenario(scenario)
-                futures.append(executor.submit(simulation, dfList, 2030, loadProfile, scenario))
+                futures.append(executor.submit(simulation, dfList, 2030, loadProfile, scenario, install_values))
             for future in futures:
                 results.append(future.result())
         szenarioDict = dict()
