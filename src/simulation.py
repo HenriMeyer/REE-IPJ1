@@ -286,7 +286,6 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                     for i in range(len(dfList) - 1):
                         buffer.append(dfList[i + 1][column].sum() - dfList[i][column].sum())
                     generation[column] = dfList[0][column].sum() + sum(buffer) / len(buffer) * (START_YEAR - startSMARD)
-                    print(column + ": " + str(generation[column]))
                 generation['E-Auto'] = eauto['E-Auto']['mid']
                 generation['E-LKW'] = elkw['E-LKW']['mid']
                 generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['min']
@@ -403,9 +402,11 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
         for df in dfList:
             futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear))
         for future in futures:
-            dfList.append(future.result()) 
+            dfList.append(future.result())
     dfDict = dict()
     dfDict[nameSzenario] = insertionSort(dfList)
+    for key, dfList in dfDict.items():
+        howMuchStorageNeed(str(key), dfList[-1])
     return dfDict
 
 def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, loadProfile: pd.DataFrame, install_values: list) -> pd.DataFrame:
@@ -571,19 +572,51 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     
     return df
 
-def howMuchStorageNeed(szenarioName: str, simulationYears: list) -> float:
-    availableStorageYear = list()
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for df in range(simulationYears):
-            futures.append(executor.submit(calculationMinStorage, df))
-        for future in futures:
-            availableStorageYear.append(future.result())
-    
-    return
+def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
+    if df2030["Anteil Erneuerbar [%]"].mean() >= 80:
+        print(szenarioName + " wouldn't need any further storage.")
+        return
+    else:
+        consumption = df2030["Verbrauch"].sum()
+        needStorage = round(consumption * 0.8 - df2030["Anteil Erneuerbar [%]"].mean() / 100 * consumption, 2)
+        
+        storageList = calculationStoragePossible(df2030)
+        if len(storageList) == 0:
+            print(szenarioName + " doesn't have renewable surplus.")
+            return
+        
+        storageAvg = round(sum(storageList) / len(storageList), 2) if storageList else 0
+        needStorageAvg = round(needStorage / len(storageList), 2)
+        
+        print(storageAvg)
+        print(needStorageAvg)
+        
+        if max(storageList) / len(storageList) < needStorageAvg:
+            print(szenarioName + " doesn't have the capacity to become 80% renewable.")
+            return
+        elif storageAvg >= needStorageAvg:
+            print(szenarioName + " would need " + str(needStorageAvg) + " MWh more storage.")
+            return
+        else:
+            print(szenarioName + " would need between " + str(storageAvg) + " - " + str(max(storageList)) + " MWh more storage... inefficient")
+            return
 
-def calculationMinStorage(df: pd.DataFrame) -> float:
-    return
-
-# def howMuchCost(szenarioList: list[dict]) -> None/np.float64:
-    
+def calculationStoragePossible(df: pd.DataFrame) -> list:
+    buffer: float = 0
+    counting = False
+    appendBuffer = False
+    values = list()
+    for idx in df.index:
+        value = df.loc[idx, "Ungenutzte Energie"]
+        if value > 0:
+            buffer += value
+            counting = True
+        if value == 0:
+            appendBuffer = True
+        if counting == True and appendBuffer == True:
+            values.append(buffer)
+            buffer = 0
+            appendBuffer = False
+            counting = False
+            
+    return values
