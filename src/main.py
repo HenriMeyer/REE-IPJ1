@@ -65,9 +65,8 @@ def main():
                 break
             case "szenarios":
                 szenarioDict.update(simulation.scenarios(dfList, loadProfile))
-            # case "szenario":
-            #     simulationDict = simulation.ownScenario(dfList, loadProfile)
-            #     # szenarioDict.append({"TEST": simulationDict})
+            case "own":
+                szenarioDict.update(simulation.ownSzenario(dfList, loadProfile))
             case "visualize":
                 if len(szenarioDict) > 0:
                     if len(szenarioDict) > 1:
@@ -165,7 +164,7 @@ def main():
 def printCommands() -> None:
     commands = [
         {"command": "quit", "description": "Terminates the program."},
-        {"command": "simulation", "description": "Runs a simulation using the given data."},
+        {"command": "own", "description": "Create an own scenario."},
         {"command": "szenarios", "description": "Runs one of many scenarios."},
         {"command": "excel", "description": "Writes the simulation data to an Excel file."},
         {"command": "visualize", "description": "Visualizes the simulation results."},
