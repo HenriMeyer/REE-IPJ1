@@ -138,7 +138,7 @@ def writeCSV(dfDict: dict) -> None:
         futures = []
         for df in dfDict[key]:
             csvFilename = f"{folder}/{str(df['Datum von'].dt.year.iloc[0])}.csv"
-            futures.append(executor.submit(df.to_csv, csvFilename, index = False, sep = ";"))
+            futures.append(executor.submit(df.to_csv, csvFilename, encoding='utf-8', index = False, sep = ";"))
         for future in futures:
             future.result()
     print(f"CSV-files have been created succesfully ('{folder}')")
