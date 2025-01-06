@@ -125,23 +125,22 @@ def countPercentageRenewableExclude(df) -> list:
         
     return vector.tolist()
 
-
 # Write to CSV
 def writeCSV(dfDict: dict) -> None:
     print("Writing data to csv...")
     key = str(next(iter(dfDict)))
     keyStr = str(key)
-    folder = "../output/" + keyStr +"/CSV"
+    folder = "../output/" + keyStr + "/CSV"
+    
     if not os.path.exists(folder):
         os.makedirs(folder)
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for df in dfDict[key]:
-            csvFilename = f"{folder}/{str(df['Datum von'].dt.year.iloc[0])}.csv"
-            futures.append(executor.submit(df.to_csv, csvFilename, encoding='utf-8', index = False, sep = ";"))
-        for future in futures:
-            future.result()
-    print(f"CSV-files have been created succesfully ('{folder}')")
+    
+    for df in dfDict[key]:
+        csvFilename = f"{folder}/{str(df['Datum von'].dt.year.iloc[0])}.csv"
+        df.to_csv(csvFilename, index=False, sep=";")
+    
+    print(f"CSV-files have been created successfully ('{folder}')")
+
     
 # Write to excel
 def writeExcel(dfDict: dict) -> None:

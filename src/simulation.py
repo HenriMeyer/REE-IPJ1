@@ -294,89 +294,154 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                     
 
     if userInput == "all":
-        with ThreadPoolExecutor() as executor:
-            futures = []
-            for scenario in choicesSzenarios:
-                defineSzenario(scenario)
-                futures.append(executor.submit(simulation, dfList, 2030, loadProfile, scenario, install_values))
-            for future in futures:
-                results.append(future.result())
+        results = []
         szenarioDict = dict()
+
+        for scenario in choicesSzenarios:
+            defineSzenario(scenario)
+            result = simulation(dfList, 2030, loadProfile, scenario, install_values)
+            results.append(result)
+
         for dictonary in results:
             szenarioDict.update(dictonary)
+
+        for key, dfList in szenarioDict.items():
+            howMuchStorageNeed(str(key), dfList[-1])
+
         return szenarioDict
+
     else:
         defineSzenario(userInput)
-        return simulation(dfList, 2030, loadProfile, userInput, install_values)    
+        szenarioDict = simulation(dfList, 2030, loadProfile, userInput, install_values)
+        for key, dfList in szenarioDict.items():
+            howMuchStorageNeed(str(key), dfList[-1])
+        return szenarioDict
 
 
-# def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> list[pd.DataFrame]:
-#     choices = {
-#         'Photovoltaik': photovoltaik,
-#         'Wind Offshore': windOffshore,
-#         'Wind Onshore': windOnshore,
-#         'Verbrauch': consumption,
-#         'Wärmepumpe' : waermepumpe,
-#         'E-Auto' : eauto,
-#         'E-LKW' : elkw,
-#         'Speicher' : speicher
-#     }
-#     global generation
-#     global storageUsage
-#     generation.update({'Photovoltaik': 1, 'Wind Offshore': 1, 'Wind Onshore': 1, 'Verbrauch': 1})
+
+def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
+    install_values = {
+        'Photovoltaik': start['Photovoltaik'],
+        'Wind Onshore': start['Wind Onshore'],
+        'Wind Offshore': start['Wind Offshore'],
+        'E-Auto': start['E-Auto'],
+        'E-LKW': start['E-LKW'],
+        'Wärmepumpe': start['Wärmepumpe']
+    }
+    print("You may choose between min, mid & max")
     
-#     for category, subdict in choices.items():
-#         if category == 'Speicher':
-#             print(f"Kategorie: {category}")
-#             while True:
-#                     userInput = input("Choose between 'max', 'mid' and 'min': ")
-#                     print()
-#                     if userInput not in ['max', 'mid', 'min']:
-#                         print("\033[31mWrong input! Please enter 'max', 'mid', or 'min'.\033[0m")
-#                     else:
-#                         storageUsage['pump_cap'] = speicher['Speicher'][userInput]['pump_cap']
-#                         storageUsage['pump_load'] = speicher['Speicher'][userInput]['pump_load']
-#                         storageUsage['batt_cap'] = speicher['Speicher'][userInput]['batt_cap']
-#                         storageUsage['batt_load'] = speicher['Speicher'][userInput]['batt_load']
-#                         break
-#         elif category != 'Verbrauch':
-#             for key, scenarios in subdict.items():
-#                 print(f"Kategorie: {category}")
-#                 print(f"\tUnterkategorie: {key}")
-#                 for scenario, value in scenarios.items():
-#                     print(f"\t\tSzenario: {scenario} -> {value}")
-#                 while True:
-#                     userInput = input("Choose between 'max', 'mid' and 'min': ")
-#                     print()
-#                     if userInput not in ['max', 'mid', 'min']:
-#                         print("\033[31mWrong input! Please enter 'max', 'mid', or 'min'.\033[0m")
-#                     else:
-#                         break
-#                 if category in generation:
-#                     generation[category] *= scenarios[userInput]
-#                 else:
-#                     print("\033[31mError category wasn't found in generation dictonary.\033[0m")
-#         elif category == 'Verbrauch':
-#             print(f"Kategorie: {category}[MWh]")
-#             for scenario, value in subdict.items():
-#                 print(f"\t\tSzenario: {scenario} -> {value}")
-#             while True:
-#                 userInput = input("Choose between 'max', 'mid' and 'min': ")
-#                 print()
-                
-#                 if userInput not in ['max', 'mid', 'min']:
-#                     print("\033[31mWrong input! Please enter 'max', 'mid', or 'min'.\033[0m")
-#                 else:
-#                     break
-#             generation[category] *= subdict[userInput]
-#         else:
-#             print("\033[31mError in szenario.\033[0m")
-            
-#     generation['Photovoltaik']*=0.8 # loss factor := 0.8
+    # Photovoltaik
+    while True:
+        userInput = input("Installed Power for photovoltaik: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            install_values.update({'Photovoltaik': photovoltaik['Installierte Leistung [MW]'][userInput]})
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    while True:
+        userInput = input("Installed Power for global solar radiation: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            generation['Photovoltaik'] = install_values['Photovoltaik'] * photovoltaik['Globalstrahlung [Wh/m^2]'][userInput] * 0.8
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
     
-#     return simulation(dfList, 2030, loadProfile)
-
-
+    # Wind
+    while True:
+        userInput = input("Installed Power for wind onshore: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            install_values.update({'Wind Onshore': windOnshore['Installierte Leistung [MW]'][userInput]})
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    while True:
+        userInput = input("Installed Power for wind offshore: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            install_values.update({'Wind Offshore': windOffshore['Installierte Leistung [MW]'][userInput]})
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    while True:
+        userInput = input("Full-load hours for wind: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            generation['Wind Onshore'] = install_values['Wind Onshore'] * windOnshore['Volllaststunden [h]'][userInput]
+            generation['Wind Offshore'] = install_values['Wind Offshore'] * windOffshore['Volllaststunden [h]'][userInput]
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    # Consumption
+    while True:
+        userInput = input("Consumption: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            generation['Verbrauch'] = consumption[userInput]
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    # Electro
+    while True:
+        userInput = input("Electric cars: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            install_values.update({'E-Auto': eauto['E-Auto'][userInput]})
+            generation['E-Auto'] = install_values['E-Auto']
+    
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    while True:
+        userInput = input("Electric truck: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            install_values.update({'E-LKW': elkw['E-LKW'][userInput]})
+            generation['E-LKW'] = install_values['E-LKW']
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    # Heat pump
+    while True:
+        userInput = input("Heat pumps: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            install_values.update({'Wärmepumpe': waermepumpe['Wärmepumpe'][userInput]})
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    while True:
+        userInput = input("Heat pumps consumption: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            generation['Wärmepumpe'] = install_values['Wärmepumpe'] * waermepumpe['Verbrauch in [kWh]'][userInput]
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    # Storage
+    while True:
+        userInput = input("Storage: ").lower()
+        if userInput in ["min", "mid", "max"]:
+            for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
+                storageUsage[storageItem] = storage['Speicher'][userInput][storageItem]
+            break
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    # Name of szenario
+    while True:
+        userInput = input("Name of szenario: ").lower()
+        confirm = input("Confirm (y/n): ").lower()
+        if confirm == 'y':
+            break
+        elif confirm == 'n':
+            continue
+        else:
+            print("\033[31mWrong input!\033[0m")
+    
+    szenarioDict = simulation(dfList, 2030, loadProfile, userInput, install_values)
+    for key, dfList in szenarioDict.items():
+        howMuchStorageNeed(str(key), dfList[-1])
+    return szenarioDict
+    
+    
 
 def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame], nameSzenario: str, install_values: list) -> dict[str, list]:
     dfList = list()
@@ -405,8 +470,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
             dfList.append(future.result())
     dfDict = dict()
     dfDict[nameSzenario] = insertionSort(dfList)
-    for key, dfList in dfDict.items():
-        howMuchStorageNeed(str(key), dfList[-1])
+    
     return dfDict
 
 def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generationYear: int, loadProfile: pd.DataFrame, install_values: list) -> pd.DataFrame:
@@ -438,7 +502,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
 
     
     dfCurrent['Price'] = 0
-    dfCurrent.at[0, 'Price'] = sum((install_values[tech] - start[tech]) / (generationYear - START_YEAR) * (currentYear - START_YEAR) * price[tech] for tech in install_values)
+    dfCurrent.at[0, 'Price'] = int(sum((install_values[tech] - start[tech]) / (generationYear - START_YEAR) * (currentYear - START_YEAR) * price[tech] for tech in install_values))
 
     dfCurrent['Verbrauch'] += dfCurrent['E-Auto'] + dfCurrent['Wärmepumpe'] + dfCurrent['E-LKW']
     dfCurrent['Verbrauch'] = dfCurrent['Verbrauch'].round(2)
@@ -588,9 +652,6 @@ def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
         storageAvg = round(sum(storageList) / len(storageList), 2) if storageList else 0
         needStorageAvg = round(needStorage / len(storageList), 2)
         
-        print(storageAvg)
-        print(needStorageAvg)
-        
         if max(storageList) / len(storageList) < needStorageAvg:
             print(szenarioName + " doesn't have the capacity to become 80% renewable.")
             return
@@ -619,4 +680,4 @@ def calculationStoragePossible(df: pd.DataFrame) -> list:
             appendBuffer = False
             counting = False
             
-    return values
+    return values.copy()
