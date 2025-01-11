@@ -77,9 +77,9 @@ waermepumpe =  {
         'max' : 4400000
     },
     'Verbrauch in [kWh]' : {
-        'min' : 5130,
-        'mid' : 6290,
-        'max' : 7850
+        'min' : 1917,
+        'mid' : 3514,
+        'max' : 7933
     }
 }
 eauto = {
@@ -160,6 +160,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
     
     global generation
     results = []
+
     install_values = {
         'Photovoltaik': start['Photovoltaik'],
         'Wind Onshore': start['Wind Onshore'],
@@ -170,6 +171,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
     }
 
     def defineSzenario(scenario: str):
+
         match scenario:
             case "retention":
                 install_values.update({
@@ -280,6 +282,14 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['max'][storageItem]
             case "smard":
+                install_values.update({
+                    'Photovoltaik': 107191,
+                    'Wind Onshore': 77061,
+                    'Wind Offshore': 14260,
+                    'E-Auto': start['E-Auto'],
+                    'E-LKW': start['E-LKW'],
+                    'Wärmepumpe': start['Wärmepumpe']
+                })
                 startSMARD = int(dfList[0]['Datum von'].dt.year.iloc[0])
                 for column in dfList[0].columns:
                     if column in ['Datum von', 'Datum bis']:
@@ -288,9 +298,13 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
                     for i in range(len(dfList) - 1):
                         buffer.append(dfList[i + 1][column].sum() - dfList[i][column].sum())
                     generation[column] = dfList[0][column].sum() + sum(buffer) / len(buffer) * (START_YEAR - startSMARD)
-                generation['E-Auto'] = eauto['E-Auto']['mid']
-                generation['E-LKW'] = elkw['E-LKW']['mid']
-                generation['Wärmepumpe'] = waermepumpe['Wärmepumpe']['max']*waermepumpe['Verbrauch in [kWh]']['min']
+                generation['Photovoltaik'] = install_values['Photovoltaik'] * photovoltaik['Globalstrahlung [Wh/m^2]']['mid'] * 0.8
+                generation['Wind Onshore'] = install_values['Wind Onshore'] * windOnshore['Volllaststunden [h]']['mid']
+                generation['Wind Offshore'] = install_values['Wind Offshore'] * windOffshore['Volllaststunden [h]']['mid']
+                generation['Verbrauch'] = consumption['mid']
+                generation['E-Auto'] = install_values['E-Auto']
+                generation['E-LKW'] = install_values['E-LKW']
+                generation['Wärmepumpe'] = install_values['Wärmepumpe'] * waermepumpe['Verbrauch in [kWh]']['min']
                 for storageItem in ["pump_cap", "pump_load", "batt_cap", "batt_load"]:
                     storageUsage[storageItem] = storage['Speicher']['mid'][storageItem]
                     
@@ -571,8 +585,8 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     batt_load = round((storageUsage['batt_load'] - storage['Speicher']['min']['batt_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_load']),2)
     batt_unload = pump_load
 
-    df.at[0, 'Price'] += round((storageUsage['pump_cap'] - storage['Speicher']['min']['pump_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR)),2)* price['Pumpspeicher']
-    df.at[0, 'Price'] += round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR)),2)* price['Batteriespeicher']
+    df.at[0, 'Price'] += round((storageUsage['pump_cap'] - storage['Speicher']['min']['pump_cap'])/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR),2)* price['Pumpspeicher']
+    df.at[0, 'Price'] += round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap'])/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR),2)* price['Batteriespeicher']
 
     pump = []
     batt = []
@@ -642,12 +656,14 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     return df
 
 def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
-    if df2030["Anteil Erneuerbar [%]"].mean() >= 80:
+
+    consumption = df2030["Verbrauch"].sum()
+    needStorage = round(df2030['Konventionell'].sum() - (consumption - consumption * 0.8) , 2)
+
+    if needStorage <= 0:
         print(szenarioName + " wouldn't need any further storage.")
         return
     else:
-        consumption = df2030["Verbrauch"].sum()
-        needStorage = round(consumption * 0.8 - df2030["Anteil Erneuerbar [%]"].mean() / 100 * consumption, 2)
         
         storageList = calculationStoragePossible(df2030)
         if len(storageList) == 0:
