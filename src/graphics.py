@@ -24,9 +24,8 @@ def visualize(simulationDict: dict[str, list]):
             print(f"\033[31m{visualizationYear} is an invalid input!\033[0m")
 
 
-    # graphics.plot_pie_conv(dfv, 'Anteilige Erzeugung Konventioneller '+ visualizationYear)
     plotHistogramPercent(dfv, folder +'/Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
-    # graphics.plot_pie_rene(dfv, 'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
+    plot_pie_rene(dfv, folder +'/Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
     # #graphics.plotHeatmap(dfv , 'Ungenutzte Energie', 'Monat', 'Tag', 'Heatmap')
     plot_energy_data_from_df(dfv, folder +'/Stromverbrauch und Produktion '+ visualizationYear)
     # clearScreen()
@@ -40,7 +39,7 @@ def visualize_multiple(simulationDict: dict[str, list]):
         os.makedirs(folder)
     
     columns = [
-        'Konventionell', 'Verbrauch', 'Price'
+        'Konventionell', 'Verbrauch', 'Price', 'Photovoltaik', 'Wind Onshore', 'Wind Offshore'
     ]
     combined_yearly_sums = {column: {} for column in columns}
     

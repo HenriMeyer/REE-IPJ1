@@ -51,8 +51,8 @@ def main():
         for future in futures:
             dfList.append(future.result())
             
-    # List for szenarios
-    szenarioDict: dict[str, list] = dict()
+    # List for scenarios
+    scenarioDict: dict[str, list] = dict()
     
     # Menu
     print("\033[1mSimulationtool (Start: 2024)\033[0m")
@@ -63,41 +63,41 @@ def main():
             case "quit":
                 print("Program will be terminated.")
                 break
-            case "szenarios":
-                szenarioDict.update(simulation.scenarios(dfList, loadProfile))
+            case "scenarios":
+                scenarioDict.update(simulation.scenarios(dfList, loadProfile))
             case "own":
-                szenarioDict.update(simulation.ownSzenario(dfList, loadProfile))
+                scenarioDict.update(simulation.ownScenario(dfList, loadProfile))
             case "visualize":
-                if len(szenarioDict) > 0:
-                    if len(szenarioDict) > 1:
+                if len(scenarioDict) > 0:
+                    if len(scenarioDict) > 1:
                         while True:
-                            for key in szenarioDict.keys():
+                            for key in scenarioDict.keys():
                                 print(f"- {key}")
-                            userInput = input("Choose your szenario (or 'all' for all scenarios): ")
+                            userInput = input("Choose your scenario (or 'all' for all scenarios): ")
                             if userInput == 'all':
-                                graphics.visualize_multiple(szenarioDict)
+                                graphics.visualize_multiple(scenarioDict)
                                 break
-                            elif userInput not in szenarioDict:
+                            elif userInput not in scenarioDict:
                                 print("\033[31mWrong input!\033[0m")
                             else:
-                                graphics.visualize({userInput: szenarioDict[userInput]})
+                                graphics.visualize({userInput: scenarioDict[userInput]})
                                 break
-                    elif szenarioDict:
-                        key = next(iter(szenarioDict))
-                        graphics.visualize({key: szenarioDict[key]})
+                    elif scenarioDict:
+                        key = next(iter(scenarioDict))
+                        graphics.visualize({key: scenarioDict[key]})
                     else:
                         print("\033[31mNo simulation has been made!\033[0m")
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "excel":
-                if len(szenarioDict) > 1:
+                if len(scenarioDict) > 1:
                     while True:
-                        printAll = input("Do you want all szenarios to be written in excel? (y/n) ").lower()
+                        printAll = input("Do you want all scenarios to be written in excel? (y/n) ").lower()
                         if printAll == 'y':
                             with ThreadPoolExecutor() as executor:
                                 futures = []
-                                for key in szenarioDict.keys():
-                                    futures.append(executor.submit(data.writeExcel, {key: szenarioDict[key]}))
+                                for key in scenarioDict.keys():
+                                    futures.append(executor.submit(data.writeExcel, {key: scenarioDict[key]}))
                                 for future in futures:
                                     future.result()
                             break
@@ -107,28 +107,28 @@ def main():
                             print("\033[31mWrong input!\033[0m")
                     if printAll == 'n':
                         while True:
-                            for key in szenarioDict.keys():
+                            for key in scenarioDict.keys():
                                 print(f"- {key}")
-                            userInput = input("Choose your szenario: ")
-                            if userInput not in szenarioDict:
+                            userInput = input("Choose your scenario: ")
+                            if userInput not in scenarioDict:
                                 print("\033[31mWrong input!\033[0m")
                             else:
-                                data.writeExcel({userInput: szenarioDict[userInput]})
+                                data.writeExcel({userInput: scenarioDict[userInput]})
                                 break
-                elif szenarioDict:
-                    key = next(iter(szenarioDict))
-                    data.writeExcel({key: szenarioDict[key]})
+                elif scenarioDict:
+                    key = next(iter(scenarioDict))
+                    data.writeExcel({key: scenarioDict[key]})
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "csv":
-                if len(szenarioDict) > 1:
+                if len(scenarioDict) > 1:
                     while True:
-                        printAll = input("Do you want all szenarios to be written in csv? (y/n) ").lower()
+                        printAll = input("Do you want all scenarios to be written in csv? (y/n) ").lower()
                         if printAll == 'y':
                             with ThreadPoolExecutor() as executor:
                                 futures = []
-                                for key in szenarioDict.keys():
-                                    futures.append(executor.submit(data.writeCSV, {key: szenarioDict[key]}))
+                                for key in scenarioDict.keys():
+                                    futures.append(executor.submit(data.writeCSV, {key: scenarioDict[key]}))
                                 for future in futures:
                                     future.result()
                             break
@@ -138,17 +138,17 @@ def main():
                             print("\033[31mWrong input!\033[0m")
                     if printAll == 'n':
                         while True:
-                            for key in szenarioDict.keys():
+                            for key in scenarioDict.keys():
                                 print(f"- {key}")
-                            userInput = input("Choose your szenario: ")
-                            if userInput not in szenarioDict:
+                            userInput = input("Choose your scenario: ")
+                            if userInput not in scenarioDict:
                                 print("\033[31mWrong input!\033[0m")
                             else:
-                                data.writeCSV({userInput: szenarioDict[userInput]})
+                                data.writeCSV({userInput: scenarioDict[userInput]})
                                 break
-                elif szenarioDict:
-                    key = next(iter(szenarioDict))
-                    data.writeCSV({key: szenarioDict[key]})
+                elif scenarioDict:
+                    key = next(iter(scenarioDict))
+                    data.writeCSV({key: scenarioDict[key]})
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "help":
@@ -165,7 +165,7 @@ def printCommands() -> None:
     commands = [
         {"command": "quit", "description": "Terminates the program."},
         {"command": "own", "description": "Create an own scenario."},
-        {"command": "szenarios", "description": "Runs one of many scenarios."},
+        {"command": "scenarios", "description": "Runs one of many scenarios."},
         {"command": "excel", "description": "Writes the simulation data to an Excel file."},
         {"command": "visualize", "description": "Visualizes the simulation results."},
         {"command": "csv", "description": "Appends data to a CSV file."},
