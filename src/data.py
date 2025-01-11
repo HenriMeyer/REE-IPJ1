@@ -40,7 +40,7 @@ def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
         print(f"File '{filenameUse}' has not been found at path: {pathUse}")
 
     # Change names and drop obsolete
-    dfGen = dfGen.drop(columns = ['Kernenergie [MWh] Originalauflösungen'])
+    dfGen = dfGen.drop(columns = ['Kernenergie [MWh] Originalauflösungen', 'Braunkohle [MWh] Originalauflösungen', 'Steinkohle [MWh] Originalauflösungen', 'Erdgas [MWh] Originalauflösungen'])
     dfGen = dfGen.rename(columns = {
             'Biomasse [MWh] Originalauflösungen': 'Biomasse',
             'Wasserkraft [MWh] Originalauflösungen' : 'Wasserkraft',
@@ -48,9 +48,6 @@ def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
             'Wind Onshore [MWh] Originalauflösungen':'Wind Onshore',
             'Photovoltaik [MWh] Originalauflösungen':'Photovoltaik',
             'Sonstige Erneuerbare [MWh] Originalauflösungen':'Sonstige Erneuerbare',
-            'Braunkohle [MWh] Originalauflösungen':'Braunkohle',
-            'Steinkohle [MWh] Originalauflösungen':'Steinkohle',
-            'Erdgas [MWh] Originalauflösungen':'Erdgas',
             'Pumpspeicher [MWh] Originalauflösungen':'Pumpspeicher',
             'Sonstige Konventionelle [MWh] Originalauflösungen':'Sonstige Konventionelle'
         }
@@ -66,7 +63,7 @@ def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
         [
             'Datum von', 'Datum bis','Biomasse', 'Wasserkraft', 'Wind Onshore',
             'Wind Offshore', 'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher',
-            'Braunkohle', 'Steinkohle', 'Erdgas', 'Sonstige Konventionelle', 'Verbrauch'
+            'Sonstige Konventionelle', 'Verbrauch'
         ]
     ]
 

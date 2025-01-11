@@ -4,7 +4,6 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
 START_YEAR = 2024
-COAL_EXIT = 2038
 
 generation = {
     'Biomasse': 43431161,
@@ -13,9 +12,6 @@ generation = {
     'Wind Onshore': 228060000,
     'Photovoltaik': 157380000,
     'Sonstige Erneuerbare': 1100000,
-    'Braunkohle': 78000000,
-    'Steinkohle': 40000000,
-    'Erdgas': 11250, # max power -> Regelbare Kraftwerke
     'Pumpspeicher': 10647000,
     'Sonstige Konventionelle': 11193660,
     'Wärmepumpe': 1,
@@ -143,15 +139,15 @@ price = {
 }
 
 def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
-    choicesSzenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence", "cold winter", "smard"]
+    choicesscenarios = ["retention", "imbalance", "no storage", "light breeze", "confidence", "cold winter", "smard"]
 
     while True:
         print(f"Available scenarios:")
-        for szenario in choicesSzenarios:
-            print(f"- {szenario}")
-        print("You may also write \033[1m'all'\033[0m to write all szenarios!")
+        for scenario in choicesscenarios:
+            print(f"- {scenario}")
+        print("You may also write \033[1m'all'\033[0m to write all scenarios!")
         userInput = input("Type in one of the mentioned scenarios: ").lower()
-        if userInput not in choicesSzenarios and userInput != "all":
+        if userInput not in choicesscenarios and userInput != "all":
             print("\033[31mWrong input!\033[0m")
         else:
             break
@@ -167,7 +163,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
         'Wärmepumpe': start['Wärmepumpe']
     }
 
-    def defineSzenario(scenario: str):
+    def definescenario(scenario: str):
         match scenario:
             case "retention":
                 install_values.update({
@@ -295,31 +291,31 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
 
     if userInput == "all":
         results = []
-        szenarioDict = dict()
+        scenarioDict = dict()
 
-        for scenario in choicesSzenarios:
-            defineSzenario(scenario)
+        for scenario in choicesscenarios:
+            definescenario(scenario)
             result = simulation(dfList, 2030, loadProfile, scenario, install_values)
             results.append(result)
 
         for dictonary in results:
-            szenarioDict.update(dictonary)
+            scenarioDict.update(dictonary)
 
-        for key, dfList in szenarioDict.items():
+        for key, dfList in scenarioDict.items():
             howMuchStorageNeed(str(key), dfList[-1])
 
-        return szenarioDict
+        return scenarioDict
 
     else:
-        defineSzenario(userInput)
-        szenarioDict = simulation(dfList, 2030, loadProfile, userInput, install_values)
-        for key, dfList in szenarioDict.items():
+        definescenario(userInput)
+        scenarioDict = simulation(dfList, 2030, loadProfile, userInput, install_values)
+        for key, dfList in scenarioDict.items():
             howMuchStorageNeed(str(key), dfList[-1])
-        return szenarioDict
+        return scenarioDict
 
 
 
-def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
+def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> dict[str, list]:
     install_values = {
         'Photovoltaik': start['Photovoltaik'],
         'Wind Onshore': start['Wind Onshore'],
@@ -425,9 +421,9 @@ def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
         else:
             print("\033[31mWrong input!\033[0m")
     
-    # Name of szenario
+    # Name of scenario
     while True:
-        userInput = input("Name of szenario: ").lower()
+        userInput = input("Name of scenario: ").lower()
         confirm = input("Confirm (y/n): ").lower()
         if confirm == 'y':
             break
@@ -436,14 +432,14 @@ def ownSzenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
         else:
             print("\033[31mWrong input!\033[0m")
     
-    szenarioDict = simulation(dfList, 2030, loadProfile, userInput, install_values)
-    for key, dfList in szenarioDict.items():
+    scenarioDict = simulation(dfList, 2030, loadProfile, userInput, install_values)
+    for key, dfList in scenarioDict.items():
         howMuchStorageNeed(str(key), dfList[-1])
-    return szenarioDict
+    return scenarioDict
     
     
 
-def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame], nameSzenario: str, install_values: list) -> dict[str, list]:
+def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProfile: list[pd.DataFrame], namescenario: str, install_values: list) -> dict[str, list]:
     dfList = list()
     # Indices for list
     leapYear = [1,5,9]
@@ -469,7 +465,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
         for future in futures:
             dfList.append(future.result())
     dfDict = dict()
-    dfDict[nameSzenario] = insertionSort(dfList)
+    dfDict[namescenario] = insertionSort(dfList)
     
     return dfDict
 
@@ -490,10 +486,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
         if column in ['Datum von', 'Datum bis']:
             continue
         if column in generation:
-            # For year 2023 coal
-            if column in ['Braunkohle','Steinkohle']:
-                dfCurrent[column] = round(dfOriginal[column] * ((-1 / (COAL_EXIT-START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
-            elif column in ['E-Auto', 'E-LKW', 'Wärmepumpe']:
+            if column in ['E-Auto', 'E-LKW', 'Wärmepumpe']:
                 dfCurrent[column] = round((loadProfile[column]*(generation[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
@@ -627,7 +620,7 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
         'Datum von', 'Datum bis',
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher Produktion',
-        'Batteriespeicher Produktion','Braunkohle', 'Steinkohle', 'Erdgas',
+        'Batteriespeicher Produktion',
         'Sonstige Konventionelle','Wärmepumpe','E-Auto', 'E-LKW', 'Verbrauch',
         'Batteriespeicher', 'Pumpspeicher', 'Überschuss', 'Ungenutzte Energie',
         'Konventionell', 'Anteil Erneuerbar [%]','Price'
@@ -636,9 +629,9 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     
     return df
 
-def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
+def howMuchStorageNeed(scenarioName: str, df2030: pd.DataFrame) -> None:
     if df2030["Anteil Erneuerbar [%]"].mean() >= 80:
-        print(szenarioName + " wouldn't need any further storage.")
+        print(scenarioName + " wouldn't need any further storage.")
         return
     else:
         consumption = df2030["Verbrauch"].sum()
@@ -646,20 +639,20 @@ def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
         
         storageList = calculationStoragePossible(df2030)
         if len(storageList) == 0:
-            print(szenarioName + " doesn't have renewable surplus.")
+            print(scenarioName + " doesn't have renewable surplus.")
             return
         
         storageAvg = round(sum(storageList) / len(storageList), 2) if storageList else 0
         needStorageAvg = round(needStorage / len(storageList), 2)
         
         if max(storageList) / len(storageList) < needStorageAvg:
-            print(szenarioName + " doesn't have the capacity to become 80% renewable.")
+            print(scenarioName + " doesn't have the capacity to become 80% renewable.")
             return
         elif storageAvg >= needStorageAvg:
-            print(szenarioName + " would need " + str(needStorageAvg) + " MWh more storage.")
+            print(scenarioName + " would need " + str(needStorageAvg) + " MWh more storage.")
             return
         else:
-            print(szenarioName + " would need between " + str(storageAvg) + " - " + str(max(storageList)) + " MWh more storage... inefficient")
+            print(scenarioName + " would need between " + str(storageAvg) + " - " + str(max(storageList)) + " MWh more storage... inefficient")
             return
 
 def calculationStoragePossible(df: pd.DataFrame) -> list:
