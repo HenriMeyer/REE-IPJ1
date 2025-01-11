@@ -647,13 +647,13 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     
     return df
 
-def howMuchStorageNeed(szenarioName: str, df2030: pd.DataFrame) -> None:
+def howMuchStorageNeed(scenarioName: str, df2030: pd.DataFrame) -> None:
 
     consumption = df2030["Verbrauch"].sum()
     needStorage = round(df2030['Konventionell'].sum() - (consumption - consumption * 0.8) , 2)
 
     if needStorage <= 0:
-        print(szenarioName + " wouldn't need any further storage.")
+        print(scenarioName + " wouldn't need any further storage.")
         return
     else:
         
