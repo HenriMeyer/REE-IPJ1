@@ -111,13 +111,13 @@ storage = {
     'mid' : {
         'pump_cap' : 70000,
         'pump_load' : 15000,
-        'batt_cap' : 60000,
+        'batt_cap' : 90000,
         'batt_load' : 15000
     },
     'max' : {
         'pump_cap' : 120000,
         'pump_load' : 30000,
-        'batt_cap' : 100000,
+        'batt_cap' : 145000,
         'batt_load' : 25000
     }
     }
