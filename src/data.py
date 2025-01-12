@@ -98,7 +98,7 @@ def readLoadProfile() -> dict:
 
         # Average consumption per day and unit
         df['E-Auto'] *= 6.14
-        df['E-LKW'] *= 65.75
+        df['E-Auto'] *= 65.75
 
     return {'leap': dfleap, 'normal': dfnormal}
 

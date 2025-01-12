@@ -56,8 +56,36 @@ def visualize_multiple(simulationDict: dict[str, list]):
     for column in columns:
         if column == 'Price':
             plot_combined_yearly_price(combined_yearly_sums[column], folder, column)
+            plot_combined_price_kWh(combined_yearly_sums, folder)
             continue
         plot_combined_yearly_sums(combined_yearly_sums[column], folder, column)
+
+def plot_combined_price_kWh(combined_yearly_sums, folder):
+    year = 2030
+    scenarios = sorted(combined_yearly_sums['Verbrauch'][year].keys())
+    
+    results = {}
+    for scenario in scenarios:
+        verbrauch = combined_yearly_sums['Verbrauch'][year][scenario]*1e9
+        konventionell = combined_yearly_sums['Konventionell'][year][scenario]*1e9
+        gesamtpreis = combined_yearly_sums['Price'][year][scenario]*1e6
+        results[scenario] = gesamtpreis/ (verbrauch - konventionell)
+
+    for i, (scenario, value) in enumerate(results.items()):
+        plt.text(i, value, f'{value:.2f}', ha='center', va='bottom')
+
+    plt.figure(figsize=(12, 8))
+    plt.bar(results.keys(), results.values(), color='skyblue')
+    plt.xlabel('Szenario')
+    plt.ylabel('€/kWh')
+    plt.title('Preis pro kWh in € für 2030')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    path = os.path.join(folder, 'Peris pro kWh in 2030.png')
+    plt.savefig(path, format='png', dpi=300)
+    plt.close()
+
 
 def plot_combined_yearly_sums(combined_yearly_sums, folder, column):
     years = sorted(combined_yearly_sums.keys())
