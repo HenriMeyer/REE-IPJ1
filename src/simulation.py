@@ -68,9 +68,9 @@ consumption = {
 
 waermepumpe =  {
     'Wärmepumpe' : {
-        'min' : 0,
-        'mid' : 3900000,
-        'max' : 4400000
+        'min' : 1600000,
+        'mid' : 5500000,
+        'max' : 6000000
     },
     'Verbrauch in [kWh]' : {
         'min' : 1917,
@@ -80,9 +80,9 @@ waermepumpe =  {
 }
 eauto = {
     'E-Auto' : {
-        'min' : 6410000,
-        'mid' : 9660000,
-        'max' : 19410000
+        'min' : 4590000,
+        'mid' : 7590000,
+        'max' : 10590000
     }
 }
 start = {
@@ -95,9 +95,9 @@ start = {
 }
 elkw = {
     'E-LKW' : {
-        'min' : 98000,
-        'mid' : 748000,
-        'max' : 1398000
+        'min' : 105339,
+        'mid' : 761243,
+        'max' : 1431907
     }
 }
 storage = {
@@ -476,7 +476,7 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
     with ThreadPoolExecutor() as executor:
         futures = []
         for df in dfList:
-            futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear))
+            futures.append(executor.submit(storage_sim, df, int(df['Datum von'].dt.year.iloc[0]), generationYear, install_values))
         for future in futures:
             dfList.append(future.result())
     dfDict = dict()
@@ -502,7 +502,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
             continue
         if column in generation:
             if column in ['E-Auto', 'E-LKW', 'Wärmepumpe']:
-                dfCurrent[column] = round((loadProfile[column]*(generation[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
+                dfCurrent[column] = round((loadProfile[column]*(generation[column]-start[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
@@ -551,7 +551,7 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
     return dfList.copy()
 
 
-def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
+def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: list) -> pd.DataFrame:
     df.drop(columns = ['Pumpspeicher'])
 
     ren_sum = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
@@ -571,9 +571,9 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear) -> pd.DataFrame:
     pump_unload = pump_load
 
     #Möglicher E-AutoSpeicher(Gesamtverbrauch/Verbrauch pro Auto = Autos gesamt -> Autos gesamt * Speicher Auto * Nutzbarer Anteil = Speicher)
-    speicher_eauto = round(df['E-Auto'].sum()/2250 * 9.79/1e3 ,2)
+    speicher_eauto = round(((install_values['E-Auto'] - start['E-Auto']) / (generationYear - START_YEAR) * (currentYear - START_YEAR) + start['E-Auto'])*9.46 /1e3,2)
     #Batteriespeicher-Parameter
-    batt_cap = round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2) * speicher_eauto
+    batt_cap = round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2) + speicher_eauto
     batt_eff = 0.95
     batt_stor = 0.0
     batt_load = round((storageUsage['batt_load'] - storage['Speicher']['min']['batt_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_load']),2)
