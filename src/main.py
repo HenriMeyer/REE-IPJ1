@@ -144,6 +144,35 @@ def main():
                         print("\033[31mNo simulation has been made!\033[0m")
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
+            case "delete":
+                if len(scenarioDict) > 0:
+                    while True:
+                        for key in scenarioDict.keys():
+                                print(f"- {key}")
+                        userInput = input("Choose your scenario (or \033[1m'all'\033[0m for all scenarios), if you want to abort type '-1': ").lower()
+                        if userInput == 'all':
+                            while True:
+                                confirm = input("Are you sure (y/n)? ").lower()
+                                if confirm == "y":
+                                    scenarioDict = {}
+                                    print("All simulations have been deleted!")
+                                    break
+                                elif confirm == "n":
+                                    break
+                                else:
+                                    print("\033[31mWrong input!\033[0m")
+                            break
+                        elif userInput == '-1':
+                            print("Abort: 'delete'")
+                            break
+                        elif userInput in scenarioDict:
+                            del scenarioDict[userInput]
+                            print(userInput + " has been deleted!")
+                            break
+                        else:
+                            print("\033[31mWrong input!\033[0m")
+                else:
+                    print("\033[31mNo simulation has been made!\033[0m")
             case "help":
                 print("Available commands:")
                 printCommands()
@@ -162,6 +191,7 @@ def printCommands() -> None:
         {"command": "excel", "description": "Writes the simulation data to an Excel file."},
         {"command": "visualize", "description": "Visualizes the simulation results."},
         {"command": "csv", "description": "Appends data to a CSV file."},
+        {"command": "delete", "description": "Delete one or all simulations."},
         {"command": "clear", "description": "Clear the screen."},
         {"command": "help", "description": "Shows this list of commands."}
     ]
