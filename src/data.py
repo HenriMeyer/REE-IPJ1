@@ -91,14 +91,14 @@ def readLoadProfile() -> dict:
             columns = {
                 'Waermepumpe[in kWh]': 'Wärmepumpe',
                 'Elektroauto[Tagesnormiert]': 'E-Auto',
-                'ELKW[Tagesnormiert]': 'E-LKW'
+                #'ELKW[Tagesnormiert]': 'E-LKW'
             },
             inplace = True
         )
-
+        df['E-LKW'] = df['E-Auto']
         # Average consumption per day and unit
         df['E-Auto'] *= 6.14
-        df['E-Auto'] *= 65.75
+        df['E-LKW'] *= 65.75
 
     return {'leap': dfleap, 'normal': dfnormal}
 
