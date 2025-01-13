@@ -570,7 +570,7 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: l
     pump_load = round((storageUsage['pump_load'] - storage['Speicher']['min']['pump_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['pump_load']),2)
     pump_unload = pump_load
 
-    #Möglicher E-AutoSpeicher(Gesamtverbrauch/Verbrauch pro Auto = Autos gesamt -> Autos gesamt * Speicher Auto * Nutzbarer Anteil = Speicher)
+    #Möglicher E-AutoSpeicher
     speicher_eauto = round(((install_values['E-Auto'] - start['E-Auto']) / (generationYear - START_YEAR) * (currentYear - START_YEAR) + start['E-Auto'])*9.46 /1e3,2)
     #Batteriespeicher-Parameter
     batt_cap = round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2) + speicher_eauto
