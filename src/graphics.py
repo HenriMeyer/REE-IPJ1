@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -82,7 +84,7 @@ def plot_combined_price_kWh(combined_yearly_sums, folder):
     plt.xticks(rotation=45)
     plt.tight_layout()
     
-    path = os.path.join(folder, 'Peris pro kWh in 2030.png')
+    path = os.path.join(folder, 'Preis pro kWh in 2030.png')
     plt.savefig(path, format='png', dpi=300)
     plt.close()
 
