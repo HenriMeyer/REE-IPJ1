@@ -341,7 +341,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
             else:
                 print("\033[31mWrong input!\033[0m")
         while True:
-            userInput = input("Installed Power for global solar radiation: ").lower()
+            userInput = input("Global solar radiation: ").lower()
             if userInput in ["min", "mid", "max"]:
                 generation['Photovoltaik'] = install_values['Photovoltaik'] * photovoltaik['Globalstrahlung [Wh/m^2]'][userInput] * 0.8
                 break
@@ -438,7 +438,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 print("\033[31mPlease enter a valid positive number!\033[0m")
 
         while True:
-            userInput = input("Installed Power for global solar radiation [Wh/m^2]: ")
+            userInput = input("Global solar radiation [Wh/m^2]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 generation['Photovoltaik'] = install_values['Photovoltaik'] * float(userInput) * 0.8
                 break
