@@ -41,7 +41,10 @@ def visualize_multiple(simulationDict: dict[str, list]):
         os.makedirs(folder)
     
     columns = [
-        'Konventionell', 'Verbrauch', 'Price', 'Photovoltaik', 'Wind Onshore', 'Wind Offshore'
+        'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
+        'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher Produktion',
+        'Batteriespeicher Produktion',
+        'Sonstige Konventionelle','Wärmepumpe','E-Auto', 'E-LKW', 'Verbrauch', 'Konventionell', 'Price'
     ]
     combined_yearly_sums = {column: {} for column in columns}
     
@@ -60,7 +63,59 @@ def visualize_multiple(simulationDict: dict[str, list]):
             plot_combined_yearly_price(combined_yearly_sums[column], folder, column)
             plot_combined_price_kWh(combined_yearly_sums, folder)
             continue
-        plot_combined_yearly_sums(combined_yearly_sums[column], folder, column)
+        elif column in ['Wind Offshore', 'Wind Onshore',
+        'Photovoltaik',  'Verbrauch', 'Konventionell']:
+            plot_combined_yearly_sums(combined_yearly_sums[column], folder, column)
+    plot_combined_percentrenewable(combined_yearly_sums, folder)
+
+def plot_combined_percentrenewable(combined_yearly_sums, folder):
+    year = 2030
+    scenarios = sorted(combined_yearly_sums['Verbrauch'][year].keys())
+    
+    results_used = {}
+    results_produced = {}
+    
+    for scenario in scenarios:
+        verbrauch = combined_yearly_sums['Verbrauch'][year][scenario] * 1e9
+        erneuerbar = (combined_yearly_sums['Verbrauch'][year][scenario] -
+                      combined_yearly_sums['Konventionell'][year][scenario]) * 1e9
+        gesamt = (combined_yearly_sums['Photovoltaik'][year][scenario] +
+                  combined_yearly_sums['Wind Onshore'][year][scenario] +
+                  combined_yearly_sums['Wind Offshore'][year][scenario]+
+                  combined_yearly_sums['Biomasse'][year][scenario]+
+                  combined_yearly_sums['Wasserkraft'][year][scenario]+
+                  combined_yearly_sums['Sonstige Erneuerbare'][year][scenario]) * 1e9
+        
+        results_used[scenario] = erneuerbar / verbrauch
+        results_produced[scenario] = gesamt / verbrauch
+
+    x = np.arange(len(scenarios))
+    width = 0.35
+
+    _, ax = plt.subplots(figsize=(12, 8))
+    bars1 = ax.bar(x - width/2, results_used.values(), width, label='Genutzte Erneuerbare')
+    bars2 = ax.bar(x + width/2, results_produced.values(), width, label='Gesamt Produziert')
+
+    ax.set_xlabel('Szenario')
+    ax.set_ylabel('Anteil am Verbrauch')
+    ax.set_title('Anteil der genutzten und produzierten Energie zum Verbrauch für 2030')
+    ax.set_xticks(x)
+    ax.set_xticklabels(scenarios, rotation=45)
+    ax.legend()
+
+    for bars in [bars1, bars2]:
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+
+    plt.tight_layout()
+    path = os.path.join(folder, 'Anteil der genutzten und produzierten Energie 2030.png')
+    plt.savefig(path, format='png', dpi=300)
+    plt.close()
 
 def plot_combined_price_kWh(combined_yearly_sums, folder):
     year = 2030
