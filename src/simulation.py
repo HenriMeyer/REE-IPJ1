@@ -83,6 +83,10 @@ eauto = {
         'min' : 4590000,
         'mid' : 7590000,
         'max' : 10590000
+    },
+    'Vehicle to Grid' : {
+        'no' : 0,
+        'yes' : 9.46
     }
 }
 start = {
@@ -126,7 +130,8 @@ storageUsage = {
     'pump_cap' : 1,
     'pump_load' : 1,
     'batt_cap' : 1,
-    'batt_load' : 1
+    'batt_load' : 1,
+    'E-Auto' : 0
 }
 # Pro Einheit oder MW in Euro(Muss noch überarbeitet werden nur zum testen)
 price = {
@@ -167,6 +172,7 @@ def scenarios(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> di
     }
 
     def definescenario(scenario: str):
+        storageUsage['E-Auto'] = eauto['Vehicle to Grid']['no']
         match scenario:
             case "retention":
                 install_values.update({
@@ -426,6 +432,14 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 break
             else:
                 print("\033[31mWrong input!\033[0m")
+        # Vehicle to Grid
+        while True:
+            userInput = input("Vehicle to Grid (yes/no): ").lower()
+            if userInput in ["yes", "no"]:
+                storageUsage['E-Auto'] = eauto['Vehicle to Grid'][userInput]
+                break
+            else:
+                print("\033[31mWrong input!\033[0m")
     
     def valuesScenario() -> None:
         # Photovoltaik
@@ -489,6 +503,14 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 break
             else:
                 print("\033[31mPlease enter a valid positive number!\033[0m")
+        
+        while True:
+            userInput = input("Vehicle to Grid (yes/no): ").lower()
+            if userInput in ["yes", "no"]:
+                storageUsage['E-Auto'] = eauto['Vehicle to Grid'][userInput]
+                break
+            else:
+                print("\033[31mWrong input!\033[0m")
 
         while True:
             userInput = input("Electric truck consumption [kWh]: ")
@@ -636,7 +658,7 @@ def calculationSimulation(dfOriginal: pd.DataFrame, currentYear: int, generation
             continue
         if column in generation:
             if column in ['E-Auto', 'E-LKW', 'Wärmepumpe']:
-                dfCurrent[column] = round((loadProfile[column]*(generation[column]-start[column]/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
+                dfCurrent[column] = round((loadProfile[column]*((generation[column]-start[column])/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + start[column])),2)
             else:
                 dfCurrent[column] = round(dfOriginal[column] * (((generation[column] / dfOriginal[column].sum() - 1) / (int(generationYear) - START_YEAR)) * (currentYear - START_YEAR) + 1), 2)
         else:
@@ -704,8 +726,8 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: l
     pump_load = round((storageUsage['pump_load'] - storage['Speicher']['min']['pump_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['pump_load']),2)
     pump_unload = pump_load
 
-    #Möglicher E-AutoSpeicher(Gesamtverbrauch/Verbrauch pro Auto = Autos gesamt -> Autos gesamt * Speicher Auto * Nutzbarer Anteil = Speicher)
-    speicher_eauto = round(((install_values['E-Auto'] - start['E-Auto']) / (generationYear - START_YEAR) * (currentYear - START_YEAR) + start['E-Auto'])*9.46 /1e3,2)
+    #Möglicher E-AutoSpeicher
+    speicher_eauto = round(((install_values['E-Auto'] - start['E-Auto']) / (generationYear - START_YEAR) * (currentYear - START_YEAR) + start['E-Auto'])* storageUsage['E-Auto'] /1e3,2)
     #Batteriespeicher-Parameter
     batt_cap = round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2) + speicher_eauto
     batt_eff = 0.95
