@@ -15,15 +15,13 @@ def visualize(simulationDict: dict[str, list]):
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    while True:
-        visualizationYear = input("Year to visualize: ")
-        if visualizationYear.isdigit():
-            for df in dfList:
-                if int(visualizationYear) == int(df['Datum von'].dt.year.iloc[0]):
-                    dfv = df
-            break
-        else:
-            print(f"\033[31m{visualizationYear} is an invalid input!\033[0m")
+
+    visualizationYear = '2030'
+
+    for df in dfList:
+        if int(visualizationYear) == int(df['Datum von'].dt.year.iloc[0]):
+            dfv = df
+  
 
 
     plotHistogramPercent(dfv, folder , 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
@@ -220,9 +218,9 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     #plt.show()  
 
 def plotHistogramPercent(df,folder, filename: str):
-    path = folder + "/" + filename + ".png"
+    path = folder + "/" + filename
     df['Anteil Erneuerbar [%]'] = df['Anteil Erneuerbar [%]'].clip(upper=100)
-    
+    df['Anteil Erneuerbar [%] ohne Speicher'] = df['Anteil Erneuerbar [%] ohne Speicher'].clip(upper=100)
     plt.figure(figsize=(10, 6))
     counts, bins, patches = plt.hist(df['Anteil Erneuerbar [%]'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100], 
                                      color='skyblue', edgecolor='black', cumulative=-1)
@@ -235,7 +233,21 @@ def plotHistogramPercent(df,folder, filename: str):
         height = patch.get_height()
         plt.text(patch.get_x() + patch.get_width() / 2, height, int(height), ha='center', va='bottom')
     
-    plt.savefig(path, format='png', dpi=300)
+    plt.savefig(path+ ".png", format='png', dpi=300)
+
+    plt.figure(figsize=(10, 6))
+    counts, bins, patches = plt.hist(df['Anteil Erneuerbar [%] ohne Speicher'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100], 
+                                     color='skyblue', edgecolor='black', cumulative=-1)
+    plt.xlabel('Anteil Erneuerbar [%] ohne Speicher')
+    plt.ylabel('Anzahl an Viertelstunden')
+    plt.title(filename + " ohne Speicher")
+    plt.tight_layout()
+    
+    for count, patch in zip(counts, patches):
+        height = patch.get_height()
+        plt.text(patch.get_x() + patch.get_width() / 2, height, int(height), ha='center', va='bottom')
+    
+    plt.savefig(path + " ohne Speicher" + ".png", format='png', dpi=300)
 
 #plots collumnchart of renewable energyproducers
 def plot_balk_rene(df, folder, filename: str):
@@ -426,8 +438,8 @@ def plot_energy_data_from_df_original(df, filename):
 
     max_gap_index = df['Lücke'].idxmax()
 
-    start_index = max(0, max_gap_index - 672)
-    end_index = min(len(df), max_gap_index + 672)
+    start_index = max(0, max_gap_index - 67)
+    end_index = min(len(df), max_gap_index + 67)
     df = df.iloc[start_index:end_index]
 
     time = df['Datum von']
@@ -464,7 +476,7 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], folder: str):
     available_columns = [
         'Verbrauch', 'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik',
         'Pumpspeicher Produktion', 'Batteriespeicher Produktion', 'Konventionell', 'Ungenutzte Energie',
-        'Wärmepumpe','E-Auto', 'E-LKW'
+        'Wärmepumpe','E-Auto', 'E-LKW', 'Speicher', 'Erneuerbare'
     ]
     print("Verfügbare Spalten:\n", ", ".join(available_columns))
     selected_columns = input("Welche Spalten möchten Sie darstellen? Geben Sie die Namen durch Komma getrennt ein: ").split(',')
@@ -484,16 +496,11 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], folder: str):
 
         # Daten aggregieren
         for col in selected_columns:
-            if col == 'Ungenutzter Strom':
-                total_unused = df[['Wind Offshore', 'Wind Onshore', 'Photovoltaik']].sum(axis=1) - df['Verbrauch']
-                total_unused = total_unused[total_unused > 0].sum() / 1e6  # nur Überschuss berücksichtigen, in TWh
-                aggregated_data[col].append(total_unused)
-            else:
-                total_value = df[col].sum() / 1e6  # in TWh
-                aggregated_data[col].append(total_value)
+            total_value = df[col].sum() / 1e6  # in TWh
+            aggregated_data[col].append(total_value)
 
     # Plot erstellen
-    fig, ax1 = plt.subplots(figsize=(14, 8))
+    _, ax1 = plt.subplots(figsize=(14, 8))
 
     # Ausgewählte Spalten plotten
     colors = ['blue', 'green', 'orange', 'black', 'red', 'purple', 'brown', 'pink', 'cyan', 'gray']
@@ -519,3 +526,23 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], folder: str):
     plt.tight_layout()
     plt.savefig(path, format='png', dpi=300)
     plt.close()
+
+    # Balkendiagramm für 2030
+    if 2030 in years:
+        index_2030 = years.index(2030)
+        values_2030 = {col: aggregated_data[col][index_2030] for col in selected_columns}
+
+        plt.figure(figsize=(12, 8))
+        plt.bar(values_2030.keys(), values_2030.values(), color='skyblue')
+        plt.xlabel('Kategorie', fontsize=14)
+        plt.ylabel('Energie (TWh)', fontsize=14)
+        plt.title('Stromerzeugung und Verbrauch für 2030', fontsize=16)
+        plt.xticks(rotation=45)
+
+        for i, (col, value) in enumerate(values_2030.items()):
+            plt.text(i, value, f'{value:.2f}', ha='center', va='bottom')
+
+        plt.tight_layout()
+        path_2030 = f"{folder}/Stromerzeugung und Verbrauch für 2030.png"
+        plt.savefig(path_2030, format='png', dpi=300)
+        plt.close()

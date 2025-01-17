@@ -815,17 +815,21 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: l
     df['Ungenutzte Energie'] = unused_en
     df['Konventionell'] = np.maximum(df['Verbrauch']-df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1), 0)
-    
-    df['Regelbare Kraftwerke'] = np.minimum(df['Konventionell'], 21000/4)
+    df['Speicher'] = df[['Batteriespeicher Produktion', 'Pumpspeicher Produktion']].sum(axis=1)
+    df['Erneuerbare'] = df[['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']].sum(axis=1)
+    df['Regelbare Kraftwerke'] = np.minimum(df['Konventionell'], 60000/4)
     df['Lücke'] = np.maximum(df['Konventionell'] - df['Regelbare Kraftwerke'], 0)
     
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
         'Batteriespeicher Produktion']].sum(axis=1)/df['Verbrauch']*100)
     
+    df['Anteil Erneuerbar [%] ohne Speicher'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare']].sum(axis=1)/df['Verbrauch']*100)
+    
     columns_to_round = [
         'Pumpspeicher', 'Batteriespeicher',
         'Pumpspeicher Produktion', 'Batteriespeicher Produktion',
-        'Überschuss', 'Ungenutzte Energie', 'Konventionell', 'Regelbare Kraftwerke', 'Lücke', 'Anteil Erneuerbar [%]'
+        'Überschuss', 'Ungenutzte Energie', 'Konventionell', 'Regelbare Kraftwerke', 'Lücke', 'Anteil Erneuerbar [%]', 
+        'Anteil Erneuerbar [%] ohne Speicher', 'Speicher', 'Erneuerbare'
     ]
     df[columns_to_round] = df[columns_to_round].round(2)
     
@@ -836,7 +840,8 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: l
         'Batteriespeicher Produktion',
         'Sonstige Konventionelle','Wärmepumpe','E-Auto', 'E-LKW', 'Verbrauch',
         'Batteriespeicher', 'Pumpspeicher', 'Überschuss', 'Ungenutzte Energie',
-        'Konventionell', 'Regelbare Kraftwerke', 'Lücke', 'Anteil Erneuerbar [%]','Price'
+        'Konventionell', 'Regelbare Kraftwerke', 'Lücke', 'Speicher', 'Erneuerbare',
+        'Anteil Erneuerbar [%]', 'Anteil Erneuerbar [%] ohne Speicher', 'Price'
     ]
     df = df[new_order]
     
