@@ -525,7 +525,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
 
         # Electro
         while True:
-            userInput = input("Electric cars consumption [kWh]: ")
+            userInput = input("Electric cars units: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 install_values.update({'E-Auto': float(userInput)})
                 generation['E-Auto'] = install_values['E-Auto']
@@ -542,7 +542,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 print("\033[31mWrong input!\033[0m")
 
         while True:
-            userInput = input("Electric truck consumption [kWh]: ")
+            userInput = input("Electric truck units: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 install_values.update({'E-LKW': float(userInput)})
                 generation['E-LKW'] = install_values['E-LKW']
@@ -550,6 +550,14 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
             else:
                 print("\033[31mPlease enter a valid positive number!\033[0m")
 
+        while True:
+            userInput = input("Sattelzug truck units: ")
+            if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
+                install_values.update({'Sattelzug': float(userInput)})
+                generation['Sattelzug'] = install_values['Sattelzug']
+                break
+            else:
+                print("\033[31mPlease enter a valid positive number!\033[0m")
         # Heat pump
         while True:
             userInput = input("Heat pumps [kWh]: ")
