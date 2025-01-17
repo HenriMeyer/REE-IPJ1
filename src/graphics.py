@@ -417,7 +417,7 @@ def plot_energy_data_from_df(df, filename):
     # Verbrauch, Produktion und Speicher plotten
     plt.plot(time, consumption, label='Stromverbrauch', color='blue', linewidth=2)
     plt.plot(time, production, label='Stromproduktion', color='green', linewidth=2)
-    plt.plot(time, storage, label='Speicher', color='orange', linewidth=2)
+    plt.plot(time, storage, label='Speicherproduktion', color='orange', linewidth=2)
     plt.plot(time, conventionell, label='Konventionell', color='black', linewidth=2)
 
     # Titel und Achsenbeschriftungen
