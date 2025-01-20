@@ -23,7 +23,6 @@ def visualize(simulationDict: dict[str, list]):
             dfv = df
   
 
-
     plotHistogramPercent(dfv, folder , 'Histogramm Abdeckung der Viertelstunden ' + visualizationYear)
     plot_pie_rene(dfv, folder ,'Anteilige Erzeugung Erneuerbarer '+ visualizationYear)
     plot_pie_conv(dfv, folder ,'Stromzusammensetzung '+ visualizationYear)
@@ -40,6 +39,9 @@ def visualize_multiple(simulationDict: dict[str, list]):
     if not os.path.exists(folder):
         os.makedirs(folder)
     
+    for key, df_list in simulationDict.items():
+        visualize({key: df_list})
+
     columns = [
         'Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
         'Photovoltaik', 'Sonstige Erneuerbare', 'Pumpspeicher Produktion',
@@ -410,12 +412,12 @@ def plot_energy_data_from_df(df, filename):
     conventionell = daily_df['Konventionell']
 
     # Diagramm erstellen
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(12, 12))
 
     # Verbrauch, Produktion und Speicher plotten
     plt.plot(time, consumption, label='Stromverbrauch', color='blue', linewidth=2)
     plt.plot(time, production, label='Stromproduktion', color='green', linewidth=2)
-    plt.plot(time, storage, label='Speicher', color='orange', linewidth=2)
+    plt.plot(time, storage, label='Speicherproduktion', color='orange', linewidth=2)
     plt.plot(time, conventionell, label='Konventionell', color='black', linewidth=2)
 
     # Titel und Achsenbeschriftungen
@@ -438,8 +440,8 @@ def plot_energy_data_from_df_original(df, filename):
 
     max_gap_index = df['Lücke'].idxmax()
 
-    start_index = max(0, max_gap_index - 67)
-    end_index = min(len(df), max_gap_index + 67)
+    start_index = max(0, max_gap_index - 672)
+    end_index = min(len(df), max_gap_index + 672)
     df = df.iloc[start_index:end_index]
 
     time = df['Datum von']
@@ -478,10 +480,11 @@ def aggregate_and_plot(dataframes: list[pd.DataFrame], folder: str):
         'Pumpspeicher Produktion', 'Batteriespeicher Produktion', 'Konventionell', 'Ungenutzte Energie',
         'Wärmepumpe','E-Auto', 'E-LKW', 'Speicher', 'Erneuerbare'
     ]
-    print("Verfügbare Spalten:\n", ", ".join(available_columns))
-    selected_columns = input("Welche Spalten möchten Sie darstellen? Geben Sie die Namen durch Komma getrennt ein: ").split(',')
-    selected_columns = [col.strip() for col in selected_columns if col.strip() in available_columns]
+    #print("Verfügbare Spalten:\n", ", ".join(available_columns))
+    #selected_columns = input("Welche Spalten möchten Sie darstellen? Geben Sie die Namen durch Komma getrennt ein: ").split(',')
+    #selected_columns = [col.strip() for col in selected_columns if col.strip() in available_columns]
 
+    selected_columns = ['Verbrauch', 'Konventionell', 'Erneuerbare']
     if not selected_columns:
         print("Keine gültigen Spalten ausgewählt. Abbruch.")
         return

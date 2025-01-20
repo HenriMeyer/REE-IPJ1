@@ -41,9 +41,9 @@ windOffshore = {
         'max' : 30000
     },
     'Volllaststunden [h]' : {
-        'min' : 4500,
-        'mid' : 5000,
-        'max' : 6000
+        'min' : 4000    ,
+        'mid' : 4500,
+        'max' : 5000
     }
 }
 
@@ -668,6 +668,8 @@ def simulation(dfOriginalList: list[pd.DataFrame], generationYear: int, loadProf
             # Check if currentYear is a leap year
             if (currentYear % 4 == 0 and (currentYear % 100 != 0 or currentYear % 400 == 0)):
                 futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(leapYear)].copy(), currentYear, generationYear, loadProfile['leap'], install_values))
+            elif currentYear == 2030:
+                futures.append(executor.submit(calculationSimulation, dfOriginalList[8].copy(), currentYear, generationYear, loadProfile['normal'], install_values))
             else:
                 futures.append(executor.submit(calculationSimulation, dfOriginalList[random.choice(commonYear)].copy(), currentYear, generationYear, loadProfile['normal'], install_values))
         for future in futures:
@@ -777,7 +779,7 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: l
     #Möglicher E-AutoSpeicher
     speicher_eauto = round(((install_values['E-Auto'] - start['E-Auto']) / (generationYear - START_YEAR) * (currentYear - START_YEAR) + start['E-Auto'])* storageUsage['E-Auto'] /1e3,2)
     #Batteriespeicher-Parameter
-    batt_cap = round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2) + speicher_eauto
+    batt_cap = (round((storageUsage['batt_cap'] - storage['Speicher']['min']['batt_cap']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_cap']),2) + speicher_eauto)
     batt_eff = 0.95
     batt_stor = 0.0
     batt_load = round((storageUsage['batt_load'] - storage['Speicher']['min']['batt_load']/(int(generationYear) - START_YEAR) * (currentYear - START_YEAR) + storage['Speicher']['min']['batt_load'])/4,2)
@@ -832,7 +834,7 @@ def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: l
         'Batteriespeicher Produktion']].sum(axis=1), 0)
     df['Speicher'] = df[['Batteriespeicher Produktion', 'Pumpspeicher Produktion']].sum(axis=1)
     df['Erneuerbare'] = df[['Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare']].sum(axis=1)
-    df['Regelbare Kraftwerke'] = np.minimum(df['Konventionell'], 60000/4)
+    df['Regelbare Kraftwerke'] = np.minimum(df['Konventionell'], 66000/4)
     df['Lücke'] = np.maximum(df['Konventionell'] - df['Regelbare Kraftwerke'], 0)
     
     df['Anteil Erneuerbar [%]'] = (df.loc[:,['Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare','Pumpspeicher Produktion',
