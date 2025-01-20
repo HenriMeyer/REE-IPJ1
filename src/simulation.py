@@ -41,7 +41,7 @@ windOffshore = {
         'max' : 30000
     },
     'Volllaststunden [h]' : {
-        'min' : 4000    ,
+        'min' : 4000   ,
         'mid' : 4500,
         'max' : 5000
     }

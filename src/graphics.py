@@ -222,9 +222,9 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
 def plotHistogramPercent(df,folder, filename: str):
     path = folder + "/" + filename
     df['Anteil Erneuerbar [%]'] = df['Anteil Erneuerbar [%]'].clip(upper=100)
-    df['Anteil Erneuerbar [%] ohne Speicher'] = df['Anteil Erneuerbar [%] ohne Speicher'].clip(upper=100)
+    df['Anteil Erneuerbar [%] ohne Speicher'] = df['Anteil Erneuerbar [%] ohne Speicher'].clip(upper=105)
     plt.figure(figsize=(10, 6))
-    counts, bins, patches = plt.hist(df['Anteil Erneuerbar [%]'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100], 
+    counts, bins, patches = plt.hist(df['Anteil Erneuerbar [%]'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105], 
                                      color='skyblue', edgecolor='black', cumulative=-1)
     plt.xlabel('Anteil Erneuerbar [%]')
     plt.ylabel('Anzahl an Viertelstunden')
