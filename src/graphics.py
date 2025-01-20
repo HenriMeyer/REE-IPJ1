@@ -1,5 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rcParams['figure.max_open_warning'] = 100
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
