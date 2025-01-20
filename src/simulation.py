@@ -506,9 +506,16 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 print("\033[31mPlease enter a valid positive number!\033[0m")
 
         while True:
-            userInput = input("Full-load hours for wind [h]: ")
+            userInput = input("Full-load hours for wind onshore [h]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 generation['Wind Onshore'] = install_values['Wind Onshore'] * float(userInput)
+                break
+            else:
+                print("\033[31mPlease enter a valid positive number!\033[0m")
+                
+        while True:
+            userInput = input("Full-load hours for wind offshore [h]: ")
+            if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 generation['Wind Offshore'] = install_values['Wind Offshore'] * float(userInput)
                 break
             else:
