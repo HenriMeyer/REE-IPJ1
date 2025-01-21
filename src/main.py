@@ -173,6 +173,14 @@ def main():
                             print("\033[31mWrong input!\033[0m")
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
+            case "owndelete":
+                scenarioDict.update(simulation.ownScenario(dfList, loadProfile))
+                lastKey = next(reversed(scenarioDict))
+                lastDict = scenarioDict[lastKey]
+                if (round(lastDict[-1]["Erneuerbare"].sum() / lastDict[-1]["Verbrauch"].sum(), 2)) < 0.8:
+                    del scenarioDict[lastKey]
+                # elif preis > 1€/kWh
+                    # del scenarioDict[lastKey]
             case "help":
                 print("Available commands:")
                 printCommands()
