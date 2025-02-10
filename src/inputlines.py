@@ -1,4 +1,3 @@
-
 FILENAME = "inputlines.txt"
 HOWOFTEN = 5
 

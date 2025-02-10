@@ -39,8 +39,7 @@ def main():
             raise ValueError("Sample lists don't have the same length.")
     except ValueError as e:
         print(f"Error: {e}")
-    
-    loadProfile = data.readLoadProfile()
+    loadProfile = data.readLoadProfile("../data/loadprofile_leapyear.csv", "../data/loadprofile_normal.csv")
 
     # Read file parallel
     dfList = list()
@@ -177,10 +176,14 @@ def main():
                 scenarioDict.update(simulation.ownScenario(dfList, loadProfile))
                 lastKey = next(reversed(scenarioDict))
                 lastDict = scenarioDict[lastKey]
-                if (round(lastDict[-1]["Erneuerbare"].sum() / lastDict[-1]["Verbrauch"].sum(), 2)) < 0.8:
+                priceDict = scenarioDict
+                if (lastDict[-1]["Erneuerbare"].sum() / lastDict[-1]["Verbrauch"].sum()) < 0.8 and lastDict[-1]["Lücke"].sum() == 0:
                     del scenarioDict[lastKey]
-                # elif preis > 1€/kWh
-                    # del scenarioDict[lastKey]
+                elif len(priceDict) > 0:
+                    if priceDict[lastKey]["price"].sum() > scenarioDict[lastKey]["price"].sum():
+                        priceDict = {lastKey : scenarioDict[lastKey]}
+                else:
+                    priceDict.update(scenarioDict[lastKey])
             case "help":
                 print("Available commands:")
                 printCommands()
