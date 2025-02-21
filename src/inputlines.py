@@ -1,5 +1,7 @@
+import random
+
 FILENAME = "inputlines.txt"
-HOWOFTEN = 5
+HOWOFTEN = 30
 
 def main():
     # start values
@@ -20,39 +22,36 @@ def main():
     batteryCapactiy = 200000
     batteryLoad = 34483
     vehicleToGrid: str = "yes"
-    # "PV", "OnShore", "Offshore",
-    simulationList = ["Speicher"]
 
     with open(FILENAME, 'w', encoding='utf-8') as f:
-        # for i in range(HOWOFTEN):
-        #     szenarioName = "Test" + str(i)
-        #     f.write("own\nvalues\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\n100000\nyes\n" + szenarioName + "\ny\n")
-        for name in simulationList:
-            # if name == "PV":
-            #     for i in range(1, HOWOFTEN):
-            #         f.write(writeToFile(...))
-            # if name == "OnShore":
-            #    for i in range(1, HOWOFTEN):
-            # if name == "Offshore":
-            #    for i in range(1, HOWOFTEN):
-            if name == "Speicher":
-                for i in range(5, HOWOFTEN + 4):
-                    szenarioName = name + str(i)
-                    f.write(f"owndelete\nvalues\n{PV}\n{radiation}\n{windOnshore}\n{windOffshore}\n{fullHourLoadOnshore}\n{fullHourLoadOffshore}\n{consumption}\n{electricCar}\n{electricTruck}\n{semiTrailerTruck}\n{heatPumps}\n{heatPumpsConsumption}\n{round((1 + i / 10) * pumpCapacity, 2)}\n{round((1 + i / 10) * pumpLoad, 2)}\n{round((1 + i / 10) * batteryCapactiy, 2)}\n{round((1 + i / 10) * batteryLoad, 2)}\n{vehicleToGrid}\n" + szenarioName + "\ny\n")
-                    # f.write(String + writeToFile([pumpCapacity, pumpLoad, batteryCapactiy, batteryLoad]))
-                f.write("visualize\nall\nquit\n")
-            else:
-                print("Error!")
-                break
+        for i in range(0, HOWOFTEN):
+            szenarioName = "Random" + str(i)
+            
+            factorPump = random.uniform(1, 1.5)
+            pumpCapacityNew = round(factorPump * pumpCapacity, 2)
+            pumpLoadNew = round(factorPump * pumpLoad, 2)
+            
+            factorBattery = random.uniform(1, 1.5)
+            batteryCapactiyNew = round(factorBattery * batteryCapactiy, 2)
+            batteryLoadNew = round(factorBattery * batteryLoad, 2)
+
+            f.write(f"owndelete\nvalues\n"
+                    f"{round(random.uniform(PV, PV*1.5), 2)}\n"
+                    f"{round(random.uniform(radiation, radiation*1.5), 2)}\n"
+                    f"{round(random.uniform(windOnshore, windOnshore*1.5), 2)}\n"
+                    f"{round(random.uniform(windOffshore, windOffshore*1.5), 2)}\n"
+                    f"{round(random.uniform(fullHourLoadOnshore, fullHourLoadOnshore*1.5), 2)}\n"
+                    f"{round(random.uniform(fullHourLoadOffshore, fullHourLoadOffshore*1.5), 2)}\n"
+                    f"{round(random.uniform(consumption, consumption*1.5), 2)}\n"
+                    f"{round(random.uniform(electricCar, electricCar*1.5), 2)}\n"
+                    f"{round(random.uniform(electricTruck, electricTruck*1.5), 2)}\n"
+                    f"{round(random.uniform(semiTrailerTruck, semiTrailerTruck*1.5), 2)}\n"
+                    f"{round(random.uniform(heatPumps, heatPumps*1.5), 2)}\n"
+                    f"{round(random.uniform(heatPumpsConsumption, heatPumpsConsumption*1.5), 2)}\n"
+                    f"{pumpCapacityNew}\n{pumpLoadNew}\n{batteryCapactiyNew}\n{batteryLoadNew}\n"
+                    f"{vehicleToGrid}\n{szenarioName}\ny\n")
     
-# def writeToFile(list: list(), int factor) -> str:
-#     if list:
-#         stringToWrite = "own\nvalues\n"
-#             for line in list:
-#                 f.write(line)
-#         return stringToWrite
-#     else:
-#         return "quit"
+        f.write("takebest\nvisualize\nall\nquit\n")
 
 if __name__ == "__main__":
     main()

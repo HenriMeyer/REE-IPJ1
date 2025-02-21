@@ -176,14 +176,37 @@ def main():
                 scenarioDict.update(simulation.ownScenario(dfList, loadProfile))
                 lastKey = next(reversed(scenarioDict))
                 lastDict = scenarioDict[lastKey]
-                priceDict = scenarioDict
-                if (lastDict[-1]["Erneuerbare"].sum() / lastDict[-1]["Verbrauch"].sum()) < 0.8 and lastDict[-1]["Lücke"].sum() == 0:
+                lastDf = lastDict[-1]
+                if (lastDf["Erneuerbare"].sum() / lastDf["Verbrauch"].sum()) < 1:
                     del scenarioDict[lastKey]
-                elif len(priceDict) > 0:
-                    if priceDict[lastKey]["price"].sum() > scenarioDict[lastKey]["price"].sum():
-                        priceDict = {lastKey : scenarioDict[lastKey]}
-                else:
-                    priceDict.update(scenarioDict[lastKey])
+            case "takebest":
+                if scenarioDict:
+                    bestPrice = None
+                    bestGap = None
+                    bestPriceKey = None
+                    bestGapKey = None
+
+                    for key, value in scenarioDict.items():
+                        # Stelle sicher, dass der Wert eine Liste ist und mindestens ein Element hat
+                        if isinstance(value, list) and value:
+                            lastEntry = value[-1]  # Letztes Element der Liste
+                            
+                            # Bestes Preis-Szenario suchen
+                            if bestPrice is None or lastEntry["Price"].sum() < bestPrice:
+                                bestPrice = lastEntry["Price"].sum()
+                                bestPriceKey = key
+
+                            # Bestes Lücken-Szenario suchen
+                            if bestGap is None or lastEntry["Lücke"].sum() < bestGap:
+                                bestGap = lastEntry["Lücke"].sum()
+                                bestGapKey = key
+
+                    # Ergebnis speichern
+                    priceDict = {"BestPrice": scenarioDict[bestPriceKey]} if bestPriceKey else {}
+                    gapDict = {"BestGap": scenarioDict[bestGapKey]} if bestGapKey else {}
+                    scenarioDict = dict()
+                    scenarioDict.update(priceDict)
+                    scenarioDict.update(gapDict)
             case "help":
                 print("Available commands:")
                 printCommands()
