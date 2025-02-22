@@ -230,12 +230,13 @@ def main():
                     extractValues(bestGapKey, gapResult)
                     extractValues(bestPriceKey, priceResult)
 
-                    def saveResults(folder, resultList, filename="InstalledValues.txt"):
-                        if os.path.exists(folder) and os.path.isdir(folder):
-                            with open(folder + filename, "w", encoding="utf-8") as out:
-                                if len(resultList) == len(valueList):
-                                    for key, value in zip(valueList, resultList):
-                                        out.write(f"{key}: {value}\n")
+                    def saveResults(folder, resultList, filename = "InstalledValues.txt"):
+                        if not os.path.exists(folder):
+                            os.makedirs(folder)
+                        with open(folder + filename, "w", encoding="utf-8") as out:
+                            if len(resultList) == len(valueList):
+                                for key, value in zip(valueList, resultList):
+                                    out.write(f"{key}: {value}\n")
 
                     saveResults(gapFolder, gapResult)
                     saveResults(priceFolder, priceResult)
