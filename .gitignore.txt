@@ -12,6 +12,5 @@ __pycache__/
 # Ignore all PNG files
 *.png
 
-# Ignore system files (macOS, Windows)
-.DS_Store
-Thumbs.db
+# Ignore inputlines.txt
+src/inputlines.txt
