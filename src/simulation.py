@@ -523,7 +523,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
 
         # Consumption
         while True:
-            userInput = input("Consumption [kWh]: ")
+            userInput = input("Consumption [MWh]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 generation['Verbrauch'] = float(userInput)
                 break
@@ -584,7 +584,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
 
         # Storage
         while True:
-            userInput = input("Storage pump capacity [kWh]: ")
+            userInput = input("Storage pump capacity [MWh]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 storageUsage["pump_cap"] = float(userInput)
                 break
@@ -592,7 +592,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 print("\033[31mPlease enter a valid positive number!\033[0m")
 
         while True:
-            userInput = input("Storage pump load [kWh]: ")
+            userInput = input("Storage pump load [MWh]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 storageUsage["pump_load"] = float(userInput)
                 break
@@ -600,7 +600,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 print("\033[31mPlease enter a valid positive number!\033[0m")
 
         while True:
-            userInput = input("Storage battery capacity [kWh]: ")
+            userInput = input("Storage battery capacity [MWh]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 storageUsage["batt_cap"] = float(userInput)
                 break
@@ -608,7 +608,7 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 print("\033[31mPlease enter a valid positive number!\033[0m")
 
         while True:
-            userInput = input("Storage battery load [kWh]: ")
+            userInput = input("Storage battery load [MWh]: ")
             if userInput.replace('.', '', 1).isdigit() and float(userInput) > 0:
                 storageUsage["batt_load"] = float(userInput)
                 break

@@ -219,30 +219,34 @@ def plotHeatmap(df: pd.DataFrame , colName, indexY, indexX, filename: str):
     
     #plt.show()  
 
-def plotHistogramPercent(df,folder, filename: str):
+def plotHistogramPercent(df, folder, filename: str):
     path = folder + "/" + filename
-    df['Anteil Erneuerbar [%]'] = df['Anteil Erneuerbar [%]'].clip(upper=100)
+    df['Anteil Erneuerbar [%]'] = df['Anteil Erneuerbar [%]'].clip(upper=105)
     df['Anteil Erneuerbar [%] ohne Speicher'] = df['Anteil Erneuerbar [%] ohne Speicher'].clip(upper=105)
+    
+    bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105]
+    bin_labels = [f'{b1}-{b2}' for b1, b2 in zip(bins[:-2], bins[1:-1])] + ['100+']
+
     plt.figure(figsize=(10, 6))
-    counts, bins, patches = plt.hist(df['Anteil Erneuerbar [%]'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105], 
-                                     color='skyblue', edgecolor='black', cumulative=-1)
+    counts, _, patches = plt.hist(df['Anteil Erneuerbar [%]'], bins=bins, color='skyblue', edgecolor='black', cumulative=-1)
     plt.xlabel('Anteil Erneuerbar [%]')
     plt.ylabel('Anzahl an Viertelstunden')
     plt.title(filename)
+    plt.xticks(bins[:-1], bin_labels, rotation=45)
     plt.tight_layout()
     
     for count, patch in zip(counts, patches):
         height = patch.get_height()
         plt.text(patch.get_x() + patch.get_width() / 2, height, int(height), ha='center', va='bottom')
     
-    plt.savefig(path+ ".png", format='png', dpi=300)
+    plt.savefig(path + ".png", format='png', dpi=300)
 
     plt.figure(figsize=(10, 6))
-    counts, bins, patches = plt.hist(df['Anteil Erneuerbar [%] ohne Speicher'], bins=[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100], 
-                                     color='skyblue', edgecolor='black', cumulative=-1)
+    counts, _, patches = plt.hist(df['Anteil Erneuerbar [%] ohne Speicher'], bins=bins, color='skyblue', edgecolor='black', cumulative=-1)
     plt.xlabel('Anteil Erneuerbar [%] ohne Speicher')
     plt.ylabel('Anzahl an Viertelstunden')
     plt.title(filename + " ohne Speicher")
+    plt.xticks(bins[:-1], bin_labels, rotation=45)
     plt.tight_layout()
     
     for count, patch in zip(counts, patches):
