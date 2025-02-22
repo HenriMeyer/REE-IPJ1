@@ -69,10 +69,10 @@ def readSMARD(filenameGen, filenameUse) -> pd.DataFrame:
 
     return df
 
-def readLoadProfile() -> dict:
+def readLoadProfile(leapFilename, normalFilename) -> dict:
     # Read data
-    dfleap = pd.read_csv("../data/loadprofile_leapyear.csv", sep = ';', encoding = 'latin-1', decimal = ',')
-    dfnormal = pd.read_csv("../data/loadprofile_normal.csv", sep = ';', encoding = 'latin-1', decimal = ',')
+    dfleap = pd.read_csv(leapFilename, sep = ';', encoding = 'latin-1', decimal = ',')
+    dfnormal = pd.read_csv(normalFilename, sep = ';', encoding = 'latin-1', decimal = ',')
 
     for df in (dfleap, dfnormal):
         # Remove timestamps
@@ -139,7 +139,7 @@ def writeCSV(dfDict: dict) -> None:
     
     print(f"CSV-files have been created successfully ('{folder}')")
 
-    
+
 # Write to excel
 def writeExcel(dfDict: dict) -> None:
     print("Writing data to excel...")
@@ -153,7 +153,3 @@ def writeExcel(dfDict: dict) -> None:
         for df in dfDict[key]:
             df.to_excel(writer, sheet_name=str(df['Datum von'].dt.year.iloc[0]), index = False, header = True)
     print(f"Die Excel-Datei '{excelFilename}' wurde erfolgreich erstellt.")
-    
-# Sum of one column
-def sumColumn(df, columnName: str) -> np.float64:
-    return df.loc[:,columnName].sum(axis=0)

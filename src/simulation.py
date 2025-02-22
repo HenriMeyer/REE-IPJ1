@@ -539,14 +539,6 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 break
             else:
                 print("\033[31mPlease enter a valid positive number!\033[0m")
-        
-        while True:
-            userInput = input("Vehicle to Grid (yes/no): ").lower()
-            if userInput in ["yes", "no"]:
-                storageUsage['E-Auto'] = eauto['Vehicle to Grid'][userInput]
-                break
-            else:
-                print("\033[31mWrong input!\033[0m")
 
         while True:
             userInput = input("Electric truck units: ")
@@ -614,6 +606,14 @@ def ownScenario(dfList: list[pd.DataFrame], loadProfile: list[pd.DataFrame]) -> 
                 break
             else:
                 print("\033[31mPlease enter a valid positive number!\033[0m")
+        # Vehicle to Grid
+        while True:
+            userInput = input("Vehicle to Grid (yes/no): ").lower()
+            if userInput in ["yes", "no"]:
+                storageUsage['E-Auto'] = eauto['Vehicle to Grid'][userInput]
+                break
+            else:
+                print("\033[31mWrong input!\033[0m")
 
 
     install_values = {
