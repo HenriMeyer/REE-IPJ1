@@ -39,8 +39,7 @@ def main():
             raise ValueError("Sample lists don't have the same length.")
     except ValueError as e:
         print(f"Error: {e}")
-    
-    loadProfile = data.readLoadProfile()
+    loadProfile = data.readLoadProfile("../data/loadprofile_leapyear.csv", "../data/loadprofile_normal.csv")
 
     # Read file parallel
     dfList = list()
@@ -173,6 +172,75 @@ def main():
                             print("\033[31mWrong input!\033[0m")
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
+            case "owndelete":
+                scenarioDict.update(simulation.ownScenario(dfList, loadProfile))
+                lastKey = next(reversed(scenarioDict))
+                lastDict = scenarioDict[lastKey]
+                lastDf = lastDict[-1]
+                if ((lastDf["Erneuerbare"].sum() - lastDf["Ungenutzte Energie"].sum()) / lastDf["Verbrauch"].sum()) < 0.8:
+                    del scenarioDict[lastKey]
+            case "takebest":
+                if scenarioDict:
+                    bestPriceName = "BestPrice"
+                    bestGapName = "BestGap"
+                    bestPrice = None
+                    bestGap = None
+                    bestPriceKey = None
+                    bestGapKey = None
+                    
+                    # Check what is the best scenario in terms of price and gap
+                    for key, value in scenarioDict.items():
+                        if isinstance(value, list) and value:
+                            lastEntry = value[-1]
+                            
+                            if bestPrice is None or lastEntry["Price"].sum() < bestPrice:
+                                bestPrice = lastEntry["Price"].sum()
+                                bestPriceKey = key
+
+                            if bestGap is None or lastEntry["Lücke"].sum() < bestGap:
+                                bestGap = lastEntry["Lücke"].sum()
+                                bestGapKey = key
+
+                    priceDict = {bestPriceName: scenarioDict[bestPriceKey]} if bestPriceKey else {}
+                    gapDict = {bestGapName: scenarioDict[bestGapKey]} if bestGapKey else {}
+                    scenarioDict = dict()
+                    scenarioDict.update(priceDict)
+                    scenarioDict.update(gapDict)
+                    
+                    # List of inputs for installed values
+                    OFFSET_LINES = 17
+                    gapResult = []
+                    priceResult = []
+                    valueList = ["PV", "Radiation", "WindOnshore", "WindOffshore", "FullHourLoadOnshore", "FullHourLoadOffshore", "Consumption", "ElectricCar", "ElectricTruck", "SemiTrailerTruck", "HeatPumps", "HeatPumpsConsumption", "PumpCapacity", "PumpLoad", "BatteryCapacity", "BatteryLoad", "VehicleToGrid"]
+
+                    gapFolder = "../output/BestGap/"
+                    priceFolder = "../output/BestPrice/"
+
+                    with open("inputlines.txt", "r", encoding="utf-8") as f:
+                        lines = f.readlines()
+
+                    def extractValues(search_key, resultList):
+                        for i, line in enumerate(lines):
+                            if str(search_key).lower() in line.lower():
+                                if i - OFFSET_LINES >= 0:
+                                    for j in range(i - OFFSET_LINES, i):
+                                        extractedWord = lines[j].strip().split()[0]
+                                        resultList.append(extractedWord)
+                                            
+                    extractValues(bestGapKey, gapResult)
+                    extractValues(bestPriceKey, priceResult)
+
+                    def saveResults(folder, resultList, filename="InstalledValues.txt"):
+                        if os.path.exists(folder) and os.path.isdir(folder):
+                            with open(folder + filename, "w", encoding="utf-8") as out:
+                                if len(resultList) == len(valueList):
+                                    for key, value in zip(valueList, resultList):
+                                        out.write(f"{key}: {value}\n")
+
+                    saveResults(gapFolder, gapResult)
+                    saveResults(priceFolder, priceResult)
+                else:
+                    print("\033[31mNo simulation has been made!\033[0m")
             case "help":
                 print("Available commands:")
                 printCommands()
@@ -198,6 +266,15 @@ def printCommands() -> None:
     
     for cmd in commands:
         print(f"- {cmd['command']}: {cmd['description']}")
+    print("------------------------------------------------------------------")
+    print("owndelete: Delete the last scenario if it is not 100% renewable.")
+    print("takebest: Takes the best scenario in terms of price and gap.")
+    print("------------------------------------------------------------------")
+    print("You may execute the following commands to gain the best scenarios:")
+    print("If you aren't in the source folder: cd src")
+    print("python3.12 inputlines.py")
+    print("python3.12 main.py < inputlines.txt")
+    print("------------------------------------------------------------------")
 
 def clearScreen() -> None:
     if os.name == 'nt':  # Windows (cmd oder PowerShell)

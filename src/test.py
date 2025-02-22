@@ -1,95 +1,116 @@
 import unittest
+import csv
+import data
+import os
 import pandas as pd
-import numpy as np
-from datetime import datetime
-from data import read_SMARD, formatTime, addDataInformation, addPercantageRenewable, countPercentageRenewable, countPercentageRenewableExclude, sumTotal
 
-class TestSMARDFunctions(unittest.TestCase):
+FILENAME_GEN = "test_gen_tmp.csv"
+FILENAME_USE = "test_use_tmp.csv"
+FILENAME_LOAD_LEAP = "test_load_leap_tmp.csv"
+FILENAME_LOAD_NORMAL = "test_load_normal_tmp.csv"
 
-    def setUp(self):
-        """Set up a sample DataFrame for testing."""
-        data = {
-            'Datum von': pd.to_datetime(['2021-01-01 00:00', '2021-01-01 00:15']),
-            'Datum bis': pd.to_datetime(['2021-01-01 00:15', '2021-01-01 00:30']),
-            'Biomasse': [50, 55],
-            'Wasserkraft': [30, 35],
-            'Wind Offshore': [100, 105],
-            'Wind Onshore': [80, 85],
-            'Photovoltaik': [40, 45],
-            'Sonstige Erneuerbare': [20, 25],
-            'Kernenergie': [200, 210],
-            'Braunkohle': [150, 160],
-            'Steinkohle': [100, 110],
-            'Erdgas': [80, 85],
-            'Pumpspeicher': [60, 65],
-            'Sonstige Konventionelle': [30, 35]
-        }
-        self.df = pd.DataFrame(data)
-
-    def test_formatTime(self):
-        """Test if time formatting works correctly."""
-        df_formatted = formatTime(self.df.copy())
-        self.assertIn('Jahr', df_formatted.columns)
-        self.assertIn('Monat', df_formatted.columns)
-        self.assertIn('Tag', df_formatted.columns)
-        self.assertIn('Uhrzeit', df_formatted.columns)
-        self.assertIn('Monat Tag', df_formatted.columns)
-        self.assertNotIn('Datum von', df_formatted.columns)
-        self.assertNotIn('Datum bis', df_formatted.columns)
-
-    def test_addDataInformation(self):
-        """Test if renewable, total, and residual columns are calculated correctly."""
-        df_with_info = addDataInformation(self.df.copy())
-        expected_renewable = [380, 415]  # Sum of all renewables
-        expected_total = [940, 1015]  # Sum of all columns except Datum columns
-        expected_residual = [560, 600]  # Total - Renewable
-
-        self.assertListEqual(df_with_info['Erneuerbar'].tolist(), expected_renewable)
-        self.assertListEqual(df_with_info['Total'].tolist(), expected_total)
-        self.assertListEqual(df_with_info['Residual'].tolist(), expected_residual)
-
-    def test_addPercantageRenewable(self):
-        """Test if renewable percentage is calculated correctly."""
-        df_with_info = addDataInformation(self.df.copy())
-        df_with_percentage = addPercantageRenewable(df_with_info)
+class Test(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Dummy generation csv file
+        header = [
+            "Datum von", "Datum bis", "Biomasse [MWh] Originalauflösungen", 
+            "Wasserkraft [MWh] Originalauflösungen", "Wind Offshore [MWh] Originalauflösungen", 
+            "Wind Onshore [MWh] Originalauflösungen", "Photovoltaik [MWh] Originalauflösungen", 
+            "Sonstige Erneuerbare [MWh] Originalauflösungen", "Kernenergie [MWh] Originalauflösungen", 
+            "Braunkohle [MWh] Originalauflösungen", "Steinkohle [MWh] Originalauflösungen", 
+            "Erdgas [MWh] Originalauflösungen", "Pumpspeicher [MWh] Originalauflösungen", 
+            "Sonstige Konventionelle [MWh] Originalauflösungen"
+        ]
+        dataCSV = [
+            ["01.01.2025 00:00", "01.01.2025 00:15", 400.1, 300, 500, 600, 450, 200, 700, 800, 600, 500, 300, 250],
+            ["01.01.2025 00:15", "01.01.2025 00:30", 420.3, 310, 520, 620, 460, 210, 710, 820, 620, 510, 320, 260],
+            ["01.01.2025 00:30", "01.01.2025 00:45", 430.6, 320, 530, 630, 470, 220, 720, 830, 630, 520, 330, 270]
+        ]
+        with open("../data/" + FILENAME_GEN, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter=";")
+            writer.writerow(header)
+            writer.writerows(dataCSV)
         
-        expected_percentage = [(380 / 940) * 100, (415 / 1015) * 100]
-        self.assertAlmostEqual(df_with_percentage['Anteil Erneuerbar [%]'].iloc[0], round(expected_percentage[0], 2))
-        self.assertAlmostEqual(df_with_percentage['Anteil Erneuerbar [%]'].iloc[1], round(expected_percentage[1], 2))
-
-        def test_countPercentageRenewable(self):
-            """Test if renewable percentage counts are calculated correctly."""
-            df_with_info = addDataInformation(self.df.copy())
-            df_with_percentage = addPercantageRenewable(df_with_info)
-            percentage_count = countPercentageRenewable(df_with_percentage)
+        # Dummy consumption csv file
+        header = [
+            "Datum von", "Datum bis", "Gesamt (Netzlast) [MWh] Originalauflösungen", 
+            "Residuallast [MWh] Originalauflösungen", "Pumpspeicher [MWh] Originalauflösungen"
+        ]
+        dataCSV = [
+            ["01.01.2025 00:00", "01.01.2025 00:15", 1000, 100, 50],
+            ["01.01.2025 00:15", "01.01.2025 00:30", 1020, 110, 60],
+            ["01.01.2025 00:30", "01.01.2025 00:45", 1030, 120, 70]
+        ]
+        with open("../data/" + FILENAME_USE, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter=";")
+            writer.writerow(header)
+            writer.writerows(dataCSV)
             
-            # Hier die erwartete Erneuerbare Energien Anteil festlegen
-            # (ca. 40% in den Beispieldaten)
-            self.assertGreaterEqual(percentage_count[4], 2)  # Beide Zeilen haben ca. 40 %
-            self.assertEqual(percentage_count[10], 0)  # Keine Zeile über 90%
-
-    def test_countPercentageRenewableExclude(self):
-        """Test if renewable percentage counts are calculated correctly excluding already counted ranges."""
-        df_with_info = addDataInformation(self.df.copy())
-        df_with_percentage = addPercantageRenewable(df_with_info)
-        percentage_count = countPercentageRenewableExclude(df_with_percentage)
+        # Dummy loadprofiles csv file
+        header = ["Jahr_von","Zeit_von", "Waermepumpe[in kWh]", "Elektroauto[Tagesnormiert]", "ELKW[Tagesnormiert]"]
+        dataCSV = [
+            ["01.01.2025", "00:00:00", "0,2", "0,01", "0,1"],
+            ["01.01.2025", "00:15:00", "0,1", "0,5", "0,05"],
+            ["01.01.2025", "00:30:00", "0,3", "0,3", "0,2"]
+        ]
+        with open(FILENAME_LOAD_LEAP, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter=";")
+            writer.writerow(header)
+            writer.writerows(dataCSV)
         
-        # For the given test data, both rows have a renewable percentage around 40%
-        self.assertEqual(percentage_count[4], 2)  # Both rows between 40-50%
-        self.assertEqual(percentage_count[10], 0)  # No rows in the 90-100% range
-
-    def test_sumTotal_generation(self):
-        """Test if total sum calculation works for generation data."""
-        df_with_info = addDataInformation(self.df.copy())
-        total_sum = sumTotal(df_with_info)
-        self.assertEqual(total_sum, df_with_info['Total'].sum())
-
-    def test_sumTotal_consumption(self):
-        """Test if total sum calculation works for consumption data."""
-        # Add a sample consumption column for testing
-        self.df['Gesamt'] = [500, 600]
-        total_sum = sumTotal(self.df, generation=False)
-        self.assertEqual(total_sum, sum([500, 600]))
-
-if __name__ == '__main__':
+        
+        header = ["Jahr_von","Zeit_von", "Waermepumpe[in kWh]", "Elektroauto[Tagesnormiert]", "ELKW[Tagesnormiert]"]
+        dataCSV = [
+            ["01.01.2025", "00:00:00", "0,3", "0,05", "0,2"],
+            ["01.01.2025", "00:15:00", "0,2", "0,1", "0,1"],
+            ["01.01.2025", "00:30:00", "0,4", "0,9", "0,4"]
+        ]
+        with open(FILENAME_LOAD_NORMAL, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter=";")
+            writer.writerow(header)
+            writer.writerows(dataCSV)
+            
+        cls.dfList: list[pd.DataFrame] = cls.dfList.append(data.readSMARD(FILENAME_GEN, FILENAME_USE))
+        cls.load: dict[str, pd.DataFrame] = data.readLoadProfile(FILENAME_LOAD_LEAP, FILENAME_LOAD_NORMAL)
+    
+    @classmethod
+    def tearDownClass(cls):
+        # Delete Dummy csv files
+        for filename in ["../data/" + FILENAME_GEN, "../data/" + FILENAME_USE, FILENAME_LOAD_LEAP, FILENAME_LOAD_NORMAL]:
+            if os.path.exists(filename):
+                os.remove(filename)
+        if os.path.exists("../output/test/CSV/2025.csv"):
+            os.remove("../output/test/CSV/2025.csv")
+        if os.path.exists("../output/test/Excel/Simulation.xlsx"):
+            os.remove("../output/test/Excel/Simulation.xlsx")
+    
+    # data.py
+    def test_dataRead(self):
+        # Check if the dataframes are not empty
+        self.assertFalse(self.dfList.empty)
+        self.assertFalse(self.load["leap"].empty)
+        self.assertFalse(self.load["normal"].empty)
+        
+    # def test_writeCSV(self):
+    #     # Check if the csv files are written correctly
+    #     data.writeCSV(self.dfDict)
+    #     self.assertTrue(os.path.exists("../output/test/CSV/2025.csv"))
+        
+        
+    # def test_writeExcel(self):
+    #     # Check if the excel files are written correctly
+    #     data.writeExcel(self.dfDict)
+    #     self.assertTrue(os.path.exists("../output/test/Excel/Simulation.xlsx"))
+    # ---------------------------------------------------------------------------
+    
+    # simulation.py
+    
+    # ---------------------------------------------------------------------------
+    # graphics.py
+    
+    # ---------------------------------------------------------------------------
+        
+# Run the tests
+if __name__ == "__main__":
     unittest.main()
