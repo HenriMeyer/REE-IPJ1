@@ -177,7 +177,7 @@ def main():
                 lastKey = next(reversed(scenarioDict))
                 lastDict = scenarioDict[lastKey]
                 lastDf = lastDict[-1]
-                if ((lastDf["Erneuerbare"].sum() - lastDf["Ungenutzte Energie"].sum()) / lastDf["Verbrauch"].sum()) < 0.8:
+                if ((lastDf["Konventionell"].sum() + lastDf["Lücke"].sum()) / lastDf["Verbrauch"].sum()) > 0.2:
                     del scenarioDict[lastKey]
             case "takebest":
                 if scenarioDict:
