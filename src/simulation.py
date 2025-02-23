@@ -758,7 +758,7 @@ def insertionSort(dfList: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
 
 def storage_sim(df: pd.DataFrame, currentYear, generationYear, install_values: list) -> pd.DataFrame:
-    df.drop(columns = ['Pumpspeicher'])
+    df = df.drop(columns = ['Pumpspeicher'])
 
     ren_sum = df.loc[:, 'Biomasse':'Sonstige Erneuerbare'].sum(axis=1)
     df['Überschuss'] = ren_sum - df['Verbrauch']
