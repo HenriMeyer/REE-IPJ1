@@ -59,7 +59,7 @@ def main():
             )
 
 
-        f.write("takebest\nvisualize\nall\nquit\n")
+        f.write("takebest\nvisualize\nall\ncsv\nall\nquit\n")
         folder = "../output/"
         if not os.path.exists(folder):
             os.makedirs(folder)
