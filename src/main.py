@@ -177,7 +177,7 @@ def main():
                 lastKey = next(reversed(scenarioDict))
                 lastDict = scenarioDict[lastKey]
                 lastDf = lastDict[-1]
-                if ((lastDf["Erneuerbare"].sum() - lastDf["Ungenutzte Energie"].sum()) / lastDf["Verbrauch"].sum()) < 0.8:
+                if ((lastDf["Konventionell"].sum() + lastDf["Lücke"].sum()) / lastDf["Verbrauch"].sum()) > 0.2:
                     del scenarioDict[lastKey]
             case "takebest":
                 if scenarioDict:
@@ -237,17 +237,26 @@ def main():
                                             
                     extractValues(bestGapKey, gapResult)
                     extractValues(bestPriceKey, priceResult)
-
-                    def saveResults(folder, resultList, filename = "InstalledValues.txt"):
+                    # Calculate the price per kWh
+                    resultPrice = []
+                    for word in [bestGapName, bestPriceName]:
+                        tmpDf = scenarioDict[word][-1]
+                        consumption = tmpDf["Verbrauch"].sum()*1e9
+                        conventional = tmpDf["Konventionell"].sum()*1e9
+                        price = tmpDf["Price"].sum()*1e6
+                        resultPrice.append(round(price / (consumption - conventional), 2))
+                        
+                    def saveResults(folder, resultList, price, filename = "InstalledValues.txt"):
                         if not os.path.exists(folder):
                             os.makedirs(folder)
                         with open(folder + filename, "w", encoding="utf-8") as out:
                             if len(resultList) == len(valueList):
                                 for key, value in zip(valueList, resultList):
                                     out.write(f"{key}: {value}\n")
+                                out.write(f"Price: {price} €/kWh\n")
 
-                    saveResults(gapFolder, gapResult)
-                    saveResults(priceFolder, priceResult)
+                    saveResults(gapFolder, gapResult, resultPrice[0])
+                    saveResults(priceFolder, priceResult, resultPrice[1])
                 else:
                     print("\033[31mNo simulation has been made!\033[0m")
             case "help":
@@ -280,9 +289,10 @@ def printCommands() -> None:
     print("takebest: Takes the best scenario in terms of price and gap.")
     print("------------------------------------------------------------------")
     print("You may execute the following commands to gain the best scenarios:")
+    print("If virtuel environment is not activated: type 'venv/bin/activate' in cmd")
     print("If you aren't in the source folder: cd src")
-    print("python3.12 inputlines.py")
-    print("python3.12 main.py < inputlines.txt")
+    print("python inputlines.py")
+    print("python main.py < inputlines.txt")
     print("------------------------------------------------------------------")
 
 def clearScreen() -> None:
