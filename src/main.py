@@ -187,6 +187,8 @@ def main():
                     bestGap = None
                     bestPriceKey = None
                     bestGapKey = None
+                    bestRelationKey = None
+                    bestRelation = None
                     
                     # Check what is the best scenario in terms of price and gap
                     for key, value in scenarioDict.items():
@@ -201,11 +203,17 @@ def main():
                                 bestGap = lastEntry["Lücke"].sum()
                                 bestGapKey = key
 
+                            if bestGap is None or lastEntry["Price"].sum() * lastEntry["Price"].sum() < bestRelation:
+                                bestRelation = lastEntry["Price"].sum() * lastEntry["Price"].sum()
+                                bestRelationKey = key
+
                     priceDict = {bestPriceName: scenarioDict[bestPriceKey]} if bestPriceKey else {}
                     gapDict = {bestGapName: scenarioDict[bestGapKey]} if bestGapKey else {}
+                    bestDict = {bestRelationKey: scenarioDict[bestRelationKey]} if bestRelationKey else {}
                     scenarioDict = dict()
                     scenarioDict.update(priceDict)
                     scenarioDict.update(gapDict)
+                    scenarioDict.update(bestDict)
                     
                     # List of inputs for installed values
                     OFFSET_LINES = 17
