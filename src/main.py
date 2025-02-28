@@ -277,7 +277,7 @@ def printCommands() -> None:
     for cmd in commands:
         print(f"- {cmd['command']}: {cmd['description']}")
     print("------------------------------------------------------------------")
-    print("owndelete: Delete the last scenario if it is not 100% renewable.")
+    print("owndelete: Delete the last scenario if it is not 80% renewable.")
     print("takebest: Takes the best scenario in terms of price and gap.")
     print("------------------------------------------------------------------")
     print("You may execute the following commands to gain the best scenarios:")
