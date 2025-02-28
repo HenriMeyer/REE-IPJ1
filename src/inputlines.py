@@ -10,7 +10,7 @@ def main():
     # Start values [min, max]
     PV_min, PV_max = 180000, 240000
     radiation_mid = 1151.5
-    windOnshore_min, windOnshore_max = 60000, 115000
+    windOnshore_min, windOnshore_max = 60000, 100000
     windOffshore_min, windOffshore_max = 8500, 40000
     fullHourLoadOnShore_mid = 3000
     fullHourLoadOffShore_mid = 5000
